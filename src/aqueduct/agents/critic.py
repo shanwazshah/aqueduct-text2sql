@@ -27,6 +27,7 @@ from pydantic import BaseModel, Field
 
 from ..db.introspect import Schema
 from ..llm.client import LLMClient, LLMError
+from ..llm.types import UnitFloat
 from ..observability.trace import Trace
 from .writer import _NullSpan
 
@@ -64,7 +65,7 @@ class Critique(BaseModel):
     """The Critic's structured verdict."""
 
     answers_question: bool = Field(description="Does the query answer what was asked?")
-    confidence: float = Field(ge=0.0, le=1.0, description="Confidence from 0 to 1.")
+    confidence: UnitFloat = Field(default=0.5, description="Confidence from 0 to 1.")
     issues: list[str] = Field(default_factory=list, description="Specific problems found.")
     suggestion: str = Field(default="", description="One-line fix, or empty if none needed.")
 

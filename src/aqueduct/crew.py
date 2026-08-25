@@ -116,6 +116,7 @@ class Crew:
     def __init__(
         self,
         *,
+        strategy: "Strategy | str | None" = None,
         repair: RepairMode = RepairMode.BOTH,
         max_attempts: int | None = None,
         schema: Schema | None = None,
@@ -123,12 +124,21 @@ class Crew:
         memory: ErrorMemory | None = None,
         use_memory: bool = True,
     ):
+        from .strategies import DirectStrategy, get_strategy
+
         self.repair = repair
         self.max_attempts = max_attempts or settings.max_repair_attempts
         self.usage = usage or Usage()
         self.schema = schema or load_schema()
         self.use_memory = use_memory
         self.memory = memory if memory is not None else ErrorMemory()
+
+        if strategy is None:
+            self.strategy = DirectStrategy()
+        elif isinstance(strategy, str):
+            self.strategy = get_strategy(strategy)
+        else:
+            self.strategy = strategy
 
         self.writer = Writer(LLMClient(role="sql", usage=self.usage), self.schema)
         self.critic = Critic(LLMClient(role="critic", usage=self.usage), self.schema)
@@ -139,13 +149,25 @@ class Crew:
 
     def ask(self, question: str, *, explain: bool = False) -> Answer:
         """Answer one question, repairing if the configured signals say to."""
+        from .db.engine import dialect_name
+        from .strategies import StrategyContext
+
         trace = Trace(question)
         memory_context = (
             self.memory.render_for_prompt(question) if self.use_memory else ""
         )
 
-        draft = self.writer.write(
-            question, feedback=memory_context or None, trace=trace
+        # Generation is the strategy's job; execution and repair stay here, so a
+        # difference between two strategies is attributable to generation alone.
+        draft = self.strategy.generate(
+            StrategyContext(
+                question=question,
+                schema=self.schema,
+                trace=trace,
+                usage=self.usage,
+                dialect=dialect_name(),
+                memory_context=memory_context,
+            )
         )
         sql = draft.sql
         original_sql, original_error = sql, None

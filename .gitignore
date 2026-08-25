@@ -10,3 +10,4 @@ data/raw/
 .streamlit/secrets.toml
 *.egg-info/
 *.log
+data/comparison.json
