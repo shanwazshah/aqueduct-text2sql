@@ -283,3 +283,122 @@ accepting a negative result.
 
 **Status.** Phase 2 done. Next: Phase 3 — the four generation strategies behind
 one interface, measured against 95.5%.
+
+## 2026-08-26 — Phase 3: six strategies compared, and a negative result
+
+**What runs now.** Six generation strategies behind one `Strategy` interface,
+with execution and repair held constant in the Crew so differences are
+attributable to generation alone.
+
+### Leaderboard — 22 questions, `qwen2.5-coder:3b`, execution-only repair
+
+| strategy | EX | correct | calls/q | vs `direct` |
+|---|---|---|---|---|
+| **`direct`** | **95.5%** | 21/22 | **1.0** | — |
+| `parallel` | 95.5% | 21/22 | 3.7 | +0.0 |
+| `eval_optimize` | 95.5% | 21/22 | 5.3 | +0.0 |
+| `chain` | 68.2% | 15/22 | 4.5 | **−27.3** |
+| `orchestrator` | 45.5% | 10/22 | 5.8 | **−50.0** |
+
+*(`react` excluded — see the invalidated result below.)*
+
+**Nothing beat a single LLM call.** Two strategies matched it at three to five
+times the cost. The two most elaborate ones were dramatically worse: the
+orchestrator, with a planner and up to five specialist workers, got **less than
+half** as many questions right as one prompt.
+
+This contradicts the premise of the source notebooks, which present these
+patterns as improvements to Text-to-SQL.
+
+### Why decomposition loses here
+
+Every stage that consumes another stage's output inherits its errors and cannot
+detect them. The orchestrator's synthesiser is instructed to follow the workers'
+findings — so when a 3B worker reports a wrong join key, the synthesiser
+faithfully writes it in. Adding stages multiplies the chances of an error and
+adds no mechanism for catching one.
+
+`direct` avoids this by construction: one model, one shot, the full schema in
+front of it, nothing to inherit.
+
+**The load-bearing caveat.** This is a 3B model. These patterns come from work
+with frontier models, where each stage is reliable enough that decomposition
+gains from focus more than it loses from error propagation. The hypothesis this
+result suggests — *decomposition helps large models and actively harms small
+ones* — is exactly what the Kaggle 7B tier is for. Until that runs, the honest
+claim is narrow: **at 3B, on this question set, decomposition costs accuracy.**
+
+### The result that was wrong, and how it was caught
+
+`react` first scored 95.5% — apparently matching `direct` at twice the cost. The
+number was fabricated by a bug.
+
+Two things in the row did not fit. `react` reported a repair on **22 of 22**
+questions, where `direct` reported one. And it used 1–2 calls per question, far
+too few for a loop that is supposed to list tables, inspect schemas, then query.
+
+Running the strategy in isolation:
+
+```
+DRAFT SQL: ''
+NOTES: {'steps': 0, 'executed': False}
+```
+
+Zero tool calls, zero steps, empty SQL. Every "react" answer had been written by
+the Fixer from the error `Query is empty.`. **The leaderboard was scoring the
+repair layer and labelling it `react`.**
+
+Root cause, from probing the endpoint directly:
+
+```
+model: qwen2.5-coder:3b
+tool_calls: None
+content: {"name": "list_tables", "arguments": {}}
+```
+
+The model emits a correct tool call — as plain text in `content`. Its chat
+template never tags it, so nothing populates `tool_calls`. Identical behaviour on
+Ollama's native `/api/chat` and its OpenAI-compatible `/v1`, so it is the model's
+template, not the protocol. `llama3.2` populates `tool_calls` properly on the
+same request, and `ollama show qwen2.5-coder:3b` lists `tools` under
+**Capabilities**.
+
+**A declared capability is a claim about the model, not a guarantee about the
+serving stack.**
+
+Fixed with a fallback that recovers tool calls from message content, covering
+`<tool_call>` tags, fenced JSON, arrays, and the nested `function` form, while
+refusing to parse ordinary prose as a call — a final answer misread as a tool
+call would make the loop never terminate. Ten regression tests.
+
+After the fix, `react` executes real tool calls and produces real SQL. Re-running
+it for a valid number.
+
+**The general lesson:** a strategy that silently produces nothing does not look
+broken when a repair layer sits behind it — it looks *fine*. Suspiciously good
+numbers deserve the same scrutiny as suspiciously bad ones, and the tell here was
+not the accuracy but the repair count.
+
+### A measurement flaw to fix
+
+The `s/q` column is not comparable across rows. `direct` had every response
+cached from earlier phases and reports ~0 s; the others ran cold. Cost per
+question in **calls** is sound and is what the table above reports. Wall-clock
+timing needs a cache-cold run to mean anything, and that belongs with the Kaggle
+sweep.
+
+### Where strategy choice actually matters
+
+Eight questions were solved by every strategy; **none** were solved by none. The
+other fourteen were contested — which is the finding that keeps Phase 4 alive. If
+no question had been contested, routing would have nothing to route.
+
+The contested set is almost entirely the hard questions: per-group extremes,
+anti-joins, multi-hop joins, self-joins, integer division. `q09` is the exception
+and the most interesting row — solved *only* by `chain` and `react`, the two
+strategies that produce the most minimal SQL, because the grader marks the extra
+column wrong (D6).
+
+**Status.** Phase 3 done, with the strongest result in the project so far being a
+negative one. Next: Phase 4 — routing, now knowing that the thing to route
+*away* from is complexity.

@@ -19,6 +19,7 @@ attempted rather than returning nothing.
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 
 from ..db.engine import run_query
 from ..llm.client import LLMError
@@ -77,6 +78,99 @@ TOOLS = [
 ]
 
 
+@dataclass
+class ToolCall:
+    """A tool invocation, however the model chose to express it."""
+
+    id: str
+    name: str
+    arguments: dict
+    native: bool  # came from the API's tool_calls field, or was parsed from text
+
+
+def extract_tool_calls(message) -> list[ToolCall]:
+    """Get tool calls out of a response, whether or not the server parsed them.
+
+    `qwen2.5-coder:3b` advertises `tools` in `ollama show`, and it does emit
+    correct tool calls — as plain JSON in the message content:
+
+        content: {"name": "list_tables", "arguments": {}}
+        tool_calls: None
+
+    Both Ollama's native `/api/chat` and its OpenAI-compatible `/v1` endpoint
+    behave this way for that model, so it is the model's chat template not
+    tagging its output, not a protocol difference. `llama3.2` populates
+    `tool_calls` properly on the same request.
+
+    Without this fallback the ReAct loop sees no tool calls, exits immediately,
+    and returns an empty query — which is exactly what happened on the first
+    sweep, where the repair layer silently wrote every query and `react` scored
+    a completely false 95.5%.
+
+    A declared capability is a claim about the model, not a guarantee about the
+    serving stack.
+    """
+    if getattr(message, "tool_calls", None):
+        calls = []
+        for i, call in enumerate(message.tool_calls):
+            try:
+                args = json.loads(call.function.arguments or "{}")
+            except json.JSONDecodeError:
+                args = {}
+            calls.append(
+                ToolCall(id=call.id or f"call_{i}", name=call.function.name,
+                         arguments=args, native=True)
+            )
+        return calls
+
+    return _parse_from_text(getattr(message, "content", "") or "")
+
+
+def _parse_from_text(content: str) -> list[ToolCall]:
+    """Recover tool calls a model wrote as text."""
+    text = content.strip()
+    if not text:
+        return []
+
+    # Some templates wrap the payload in tags.
+    for open_tag, close_tag in (("<tool_call>", "</tool_call>"), ("```json", "```"), ("```", "```")):
+        if open_tag in text:
+            start = text.index(open_tag) + len(open_tag)
+            end = text.find(close_tag, start)
+            text = text[start:end if end != -1 else len(text)].strip()
+            break
+
+    if not text.startswith(("{", "[")):
+        return []
+
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        return []
+
+    entries = payload if isinstance(payload, list) else [payload]
+    calls = []
+    for i, entry in enumerate(entries):
+        if not isinstance(entry, dict):
+            continue
+        # Accept both {"name":..,"arguments":..} and the nested function form.
+        fn = entry.get("function") if isinstance(entry.get("function"), dict) else entry
+        name = fn.get("name")
+        if not name:
+            continue
+        args = fn.get("arguments", fn.get("parameters", {}))
+        if isinstance(args, str):
+            try:
+                args = json.loads(args)
+            except json.JSONDecodeError:
+                args = {}
+        calls.append(
+            ToolCall(id=f"parsed_{i}", name=str(name),
+                     arguments=args if isinstance(args, dict) else {}, native=False)
+        )
+    return calls
+
+
 class ReactStrategy(Strategy):
     name = "react"
     description = "Tool-calling agent that discovers the schema for itself."
@@ -112,18 +206,32 @@ class ReactStrategy(Strategy):
 
                 client.usage.record(client.model, response.usage, 0.0, was_cached=False)
                 message = response.choices[0].message
-                messages.append(message.model_dump(exclude_none=True))
+                calls = extract_tool_calls(message)
 
-                if not message.tool_calls:
+                if not calls:
+                    messages.append(message.model_dump(exclude_none=True))
                     break  # the agent considers itself done
 
-                for call in message.tool_calls:
+                # Replay parsed calls in the native shape, so the conversation
+                # stays well-formed for models that do populate tool_calls.
+                messages.append(
+                    {
+                        "role": "assistant",
+                        "content": "",
+                        "tool_calls": [
+                            {
+                                "id": c.id,
+                                "type": "function",
+                                "function": {"name": c.name, "arguments": json.dumps(c.arguments)},
+                            }
+                            for c in calls
+                        ],
+                    }
+                )
+
+                for call in calls:
                     steps += 1
-                    name = call.function.name
-                    try:
-                        args = json.loads(call.function.arguments or "{}")
-                    except json.JSONDecodeError:
-                        args = {}
+                    name, args = call.name, call.arguments
 
                     # A model looping on the same call is stuck, not thinking.
                     signature = f"{name}:{json.dumps(args, sort_keys=True)}"

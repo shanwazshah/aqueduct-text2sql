@@ -123,3 +123,74 @@ def test_evaluation_identifies_its_weakest_area():
     )
     assert evaluation.weakest == "joins"
     assert evaluation.total == 8
+
+
+# ── tool-call recovery ───────────────────────────────────────────────
+#
+# `qwen2.5-coder:3b` advertises tool support and emits correct tool calls as
+# plain text in `content`, leaving `tool_calls` empty. The ReAct loop saw no
+# calls, exited immediately, returned an empty query, and the repair layer
+# silently wrote every query instead — producing a completely false 95.5% for
+# the strategy on the first sweep.
+
+from types import SimpleNamespace
+
+from aqueduct.strategies.react import extract_tool_calls
+
+
+def _message(content=None, tool_calls=None):
+    return SimpleNamespace(content=content, tool_calls=tool_calls)
+
+
+def test_native_tool_calls_are_used_when_present():
+    message = _message(
+        tool_calls=[
+            SimpleNamespace(
+                id="call_1",
+                function=SimpleNamespace(name="list_tables", arguments="{}"),
+            )
+        ]
+    )
+    calls = extract_tool_calls(message)
+    assert len(calls) == 1
+    assert calls[0].name == "list_tables"
+    assert calls[0].native
+
+
+def test_tool_call_written_as_text_is_recovered():
+    """The exact shape qwen2.5-coder emits."""
+    calls = extract_tool_calls(_message(content='{"name": "list_tables", "arguments": {}}'))
+    assert len(calls) == 1
+    assert calls[0].name == "list_tables"
+    assert not calls[0].native
+
+
+def test_recovered_call_keeps_its_arguments():
+    calls = extract_tool_calls(
+        _message(content='{"name": "get_table_schema", "arguments": {"table_name": "orders"}}')
+    )
+    assert calls[0].arguments == {"table_name": "orders"}
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        '<tool_call>{"name": "list_tables", "arguments": {}}</tool_call>',
+        '```json\n{"name": "list_tables", "arguments": {}}\n```',
+        '[{"name": "list_tables", "arguments": {}}]',
+        '{"function": {"name": "list_tables", "arguments": {}}}',
+        '{"name": "list_tables", "arguments": "{}"}',
+    ],
+)
+def test_tool_call_wrappers_are_tolerated(content):
+    calls = extract_tool_calls(_message(content=content))
+    assert [c.name for c in calls] == ["list_tables"]
+
+
+@pytest.mark.parametrize(
+    "content",
+    ["", None, "I will now list the tables.", "not json at all", "{broken json"],
+)
+def test_plain_prose_is_not_mistaken_for_a_tool_call(content):
+    """A final answer must not be parsed as a call, or the loop never ends."""
+    assert extract_tool_calls(_message(content=content)) == []
