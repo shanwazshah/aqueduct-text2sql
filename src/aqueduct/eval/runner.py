@@ -11,7 +11,7 @@ from time import perf_counter
 from typing import Callable, Iterable
 
 from ..crew import Answer
-from .demo_set import QUESTIONS, Question
+from .demo_set import ALL_QUESTIONS, Question
 from .metrics import Grade, Report, execution_accuracy
 
 
@@ -27,7 +27,7 @@ def evaluate(
     `ask` is any callable taking a question string and returning an Answer, so
     this works unchanged against every strategy added later.
     """
-    questions = list(questions or QUESTIONS)
+    questions = list(questions or ALL_QUESTIONS)
     report = Report()
     rows: list[tuple[Question, Answer, Grade]] = []
     start = perf_counter()

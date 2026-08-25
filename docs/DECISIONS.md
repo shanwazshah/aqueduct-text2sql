@@ -180,3 +180,83 @@ leave no way to attribute any of the result.
 
 **Baseline recorded:** 91.7% EX (11/12) on the demo set, `qwen2.5-coder:3b`.
 Every later phase is measured against that number.
+
+---
+
+### D8 — Column existence is checked in Python, not by the model
+
+**Date:** 2026-08-25
+
+The source notebook's critique prompt asks the model to return `schema_ok`:
+does every table and column in this query exist? Phase 1 measured what that is
+worth at 3B scale — shown `SELECT dept FROM employees` and told the real column
+is `department`, the model returned `schema_ok: true, confidence: 0.9`.
+
+Column existence is a set-membership test. It has a correct answer that can be
+computed. Routing it through a language model converts a decidable question into
+a probabilistic one and pays 18 seconds for the privilege.
+
+`check_against_schema()` resolves aliases, extracts table and column references,
+and diffs them against the introspected schema. The model is asked only what is
+genuinely semantic: *does this query answer the question asked?* — wrong
+aggregate, wrong join direction, missing filter. Things with no mechanical test.
+
+**Bonus that turned out to matter:** because the check runs in Python it can
+produce `column 'salery' does not exist. Did you mean 'salary'?`. The database's
+own error says only `no such column: salery`. The Fixer repairs far more reliably
+when told what to write instead of merely what was wrong.
+
+**Refinement after first run:** suggestions were initially drawn from every
+column in the database, which matched `dept` to `budget` — a column on a
+different table. Candidates are now scoped to the table actually being queried
+when the query touches only one.
+
+---
+
+### D9 — Error memory stores rules, not examples, and retrieval has a threshold
+
+**Date:** 2026-08-25
+
+Reflexion-style memory was built as the notebooks describe it: when a repair
+succeeds, store the question, the broken SQL, the error, and the corrected SQL;
+retrieve similar entries later and put them in the Writer's prompt.
+
+**It made things worse, and the ablation caught it.** Question h04 (revenue by
+department, a four-table join) passed with no memory and failed once a lesson
+was in the store. Isolated and reproduced directly:
+
+| condition | h04 |
+|---|---|
+| memory disabled | correct |
+| one lesson from h02 in memory | **wrong** |
+
+The recalled lesson was from *"which employees have never handled an order?"* —
+retrieved because both questions mention orders and employees. Its corrected
+query used `LEFT JOIN orders ... WHERE ... IS NULL`. The Writer reproduced that
+join shape on h04 and invented a `WHERE o.status = 'shipped'` filter nobody had
+asked for.
+
+Two distinct faults, both fixed:
+
+1. **Retrieval was too permissive.** Any shared keyword admitted a lesson. Now
+   scored by Jaccard overlap with a 0.25 floor, so topical adjacency is not
+   mistaken for relevance. A lesson that does not clearly apply is worse than no
+   lesson — it occupies context and steers the model toward a pattern that does
+   not fit.
+2. **Lessons were rendered as SQL.** Showing a corrected query invites imitation
+   of its shape. A lesson now renders as the error alone —
+   `- no such column: oi.employee_id`. The transferable knowledge is the
+   constraint, not the query that satisfied it.
+
+Both are pinned as regression tests in `tests/test_critic.py`.
+
+**The general lesson, worth more than the fix:** a memory of past corrections is
+not free. Every retrieved entry is a few-shot example, and an irrelevant few-shot
+example actively degrades output. The notebooks present memory as a
+straightforward improvement; measured on a small model, the naive version was a
+regression.
+
+**Also changed:** lessons are recorded only when the repair is *verified* — the
+first attempt failed and the last succeeded. The notebook records a lesson
+whenever the loop iterated more than once, which files the crew's guesses next to
+its knowledge.

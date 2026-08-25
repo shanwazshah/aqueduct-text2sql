@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aqueduct"
+version = "0.2.0"
+description = "An agentic Text-to-SQL crew that sizes itself to the question."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+dependencies = [
+    "sqlalchemy>=2.0",
+    "sqlglot>=25.0",        # AST-level SQL safety guard
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+    "openai>=1.0",          # protocol client; talks to Ollama and vLLM too
+    "typer>=0.12",
+    "rich>=13.0",
+]
+
+[project.optional-dependencies]
+ui = ["streamlit>=1.30"]
+eval = ["datasets>=2.0"]    # BIRD mini-dev loader
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23"]
+
+[project.scripts]
+aqueduct = "aqueduct.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
