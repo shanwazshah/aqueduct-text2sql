@@ -54,6 +54,13 @@ class Row:
     agents: list[str] = field(default_factory=list)
     repaired: bool = False
 
+    # The strategy's own output, graded before the repair layer touched it.
+    # Without this the leaderboard measures "strategy + repair" and a strategy
+    # that generates nothing at all can still look competent, because the Fixer
+    # quietly writes the query from the error. That is exactly what react did.
+    draft_sql: str = ""
+    draft_correct: bool = False
+
 
 def load_rows(path: Path) -> dict[tuple[str, str], Row]:
     if not path.exists():
@@ -99,6 +106,10 @@ def run(
             try:
                 answer = crew.ask(question.question)
                 grade = execution_accuracy(answer.sql, question.gold_sql)
+
+                draft_sql = answer.attempts[0].sql if answer.attempts else ""
+                draft_grade = execution_accuracy(draft_sql, question.gold_sql)
+
                 row = Row(
                     strategy=name,
                     question_id=question.id,
@@ -109,6 +120,8 @@ def run(
                     seconds=perf_counter() - start,
                     agents=answer.agents_used,
                     repaired=answer.was_repaired,
+                    draft_sql=draft_sql,
+                    draft_correct=draft_grade.correct,
                 )
             except Exception as e:
                 # One strategy blowing up on one question must not lose the
@@ -141,8 +154,8 @@ def report(rows: dict[tuple[str, str], Row], strategy_names: list[str]) -> str:
         "=" * 82,
         "STRATEGY COMPARISON".center(82),
         "=" * 82,
-        f"{'strategy':<15}{'EX':>8}{'correct':>10}{'calls/q':>10}{'s/q':>9}"
-        f"{'repairs':>9}{'vs direct':>12}",
+        f"{'strategy':<15}{'gen EX':>9}{'final EX':>10}{'rescued':>9}"
+        f"{'calls/q':>9}{'repairs':>9}{'vs direct':>12}",
         "-" * 82,
     ]
 
@@ -153,15 +166,18 @@ def report(rows: dict[tuple[str, str], Row], strategy_names: list[str]) -> str:
             continue
         total = len(subset)
         correct = sum(1 for r in subset if r.correct)
+        gen_correct = sum(1 for r in subset if r.draft_correct)
         ex = 100.0 * correct / total
+        gen_ex = 100.0 * gen_correct / total
+        # Questions the strategy got wrong (or blank) that repair turned around.
+        rescued = sum(1 for r in subset if r.correct and not r.draft_correct)
         if name == "direct":
             baseline = ex
 
         delta = "  --  " if baseline is None or name == "direct" else f"{ex - baseline:+.1f}"
         lines.append(
-            f"{name:<15}{ex:>7.1f}%{correct:>7}/{total:<2}"
-            f"{sum(r.calls for r in subset) / total:>10.1f}"
-            f"{sum(r.seconds for r in subset) / total:>9.1f}"
+            f"{name:<15}{gen_ex:>8.1f}%{ex:>9.1f}%{rescued:>9}"
+            f"{sum(r.calls for r in subset) / total:>9.1f}"
             f"{sum(1 for r in subset if r.repaired):>9}"
             f"{delta:>12}"
         )

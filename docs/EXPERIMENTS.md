@@ -402,3 +402,87 @@ column wrong (D6).
 **Status.** Phase 3 done, with the strongest result in the project so far being a
 negative one. Next: Phase 4 — routing, now knowing that the thing to route
 *away* from is complexity.
+
+## 2026-08-26 — Phase 3 corrected: separating generation from rescue
+
+The Phase 3 leaderboard above measured **strategy + repair** and reported it as
+**strategy**. That is a design fault in the harness, not a detail — it lets a
+strategy that generates nothing at all appear competent, because the repair layer
+quietly writes the query from the error message.
+
+Every row now records the strategy's raw draft, graded *before* repair touches
+it. Same 22 questions, same models, same cache.
+
+### Corrected leaderboard
+
+| strategy | **gen EX** | final EX | rescued by repair | calls/q |
+|---|---|---|---|---|
+| **`direct`** | **90.9%** | 95.5% | 1 | **1.0** |
+| `parallel` | 90.9% | 95.5% | 1 | 3.7 |
+| `eval_optimize` | 90.9% | 95.5% | 1 | 5.3 |
+| `chain` | 50.0% | 68.2% | 4 | 4.5 |
+| `orchestrator` | 40.9% | 45.5% | 1 | 5.8 |
+| `react` | **4.5%** | 81.8% | **17** | 2.5 |
+
+**`react` generates one correct query out of twenty-two.** Its 81.8% was 17
+rescues. Broken down further: it made no tool calls at all on 14 of 22 questions,
+and when it *did* drive the loop it was right 4 times out of 8. The apparent
+competence was entirely the Fixer.
+
+At 3B, a multi-step ReAct loop does not work. That is notebook 1's whole
+architecture, and it does not survive contact with a small model.
+
+### The result, stated cleanly
+
+Ranked by what the strategies actually *generate*:
+
+```
+direct / parallel / eval_optimize   90.9%     1 - 5 calls
+chain                               50.0%     4.5 calls
+orchestrator                        40.9%     5.8 calls
+react                                4.5%     2.5 calls
+```
+
+**Generation quality falls monotonically as decomposition increases.** `parallel`
+and `eval_optimize` tie with `direct` because both begin with a single-shot draft
+and their extra machinery changed the answer on zero questions. Everything that
+*replaces* single-shot generation with a pipeline — chain, orchestrator, react —
+does worse, and the more stages it has, the worse it does.
+
+The mechanism is the same one in every case: each stage inherits the previous
+stage's errors and has no way to detect them. The orchestrator's synthesiser is
+instructed to follow its workers' findings, so a wrong join key from a 3B worker
+is written faithfully into the final query.
+
+**The caveat stands and matters.** This is a 3B model. These patterns come from
+work with frontier models, where each stage is reliable enough that focus gains
+outweigh error propagation. The hypothesis — *decomposition helps large models and
+harms small ones* — is what the Kaggle 7B tier exists to test.
+
+### On finding this
+
+This is the second measurement bug that flattered the project, after the grader's
+false passes in Phase 1. Both were caught by something that did not fit rather
+than by the score looking wrong:
+
+  * Phase 1: a test written to prove the grader correct failed instead.
+  * Phase 3: `react` reported repairs on 22 of 22 questions where `direct`
+    reported 1.
+
+Neither headline number looked suspicious. The metadata did. Worth building
+harnesses that surface the metadata by default — the `rescued` column exists now
+precisely so this class of fault is visible in the table rather than found by
+accident.
+
+### What this means for Phase 4
+
+Routing was conceived as *"send hard questions to expensive strategies"*. The data
+says there is nothing worth routing *to*: no strategy beats `direct` on
+generation, and the expensive ones are far worse.
+
+That does not kill the router, it redirects it. All 14 contested questions were
+contested because of *repair*, not generation. So the live question becomes **how
+much verification effort a question deserves**, not which pipeline to run — with
+`direct` generation as the fixed baseline and the router deciding what to spend on
+checking. That is a smaller claim than the one this project started with, and it
+is the one the evidence supports.
