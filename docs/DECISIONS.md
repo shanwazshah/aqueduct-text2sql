@@ -86,9 +86,17 @@ agent code. Model size becomes a measurable axis rather than a rewrite.
 **Rejected:** provider-specific SDKs for each backend (duplicate code paths, and
 the eval harness could no longer compare like with like).
 
-**Known wrinkle:** structured output is the one place the backends genuinely
-differ — Ollama takes a JSON Schema in `format`, vLLM uses `guided_json`. That
-difference is isolated to `llm/structured.py`.
+**Expected wrinkle that did not materialise.** Structured output looked like the
+place the backends would diverge — Ollama's native API takes a JSON Schema in
+`format`, vLLM has `guided_json`. Tested before building around it, and Ollama's
+OpenAI-compatible `/v1` endpoint accepts standard
+`response_format: {"type": "json_schema", ...}` directly. So no adapter layer was
+needed, and `llm/structured.py` was never written — the schema goes straight
+through `llm/client.py` for every backend.
+
+Worth recording as a decision *not* taken: the abstraction was planned, tested
+for, and turned out to be unnecessary. Building it anyway would have added a
+layer with one implementation behind it.
 
 ---
 
@@ -112,3 +120,63 @@ be the mistakes small models actually make:
 
 These are the failures the critic and repair agents exist to catch. Without them
 in the fixture, those agents would always pass and we would learn nothing.
+
+---
+
+### D6 — Grading compares result sets positionally, matching BIRD
+
+**Date:** 2026-08-25
+
+Two queries that look nothing alike can be equally correct, so grading runs both
+the generated and the reference query and compares what comes back. That part was
+never in question. What column order should mean took three attempts.
+
+The intuition was that column order should not matter — `name, count` and
+`count, name` answer the same question, and failing one for formatting measures
+the wrong thing. Two implementations tried to encode that:
+
+1. **Sort cells within each row.** Collapses `(min=5, max=10)` and
+   `(min=10, max=5)` into the same tuple. False pass.
+2. **Sort whole columns into a canonical order.** Preserves which value sits in
+   which column, so it survives the multi-row case — but for a *single-row*
+   result those two answers are the same multiset, and it produces the identical
+   false pass. Caught by the regression test written for attempt 1.
+
+The second failure is the informative one. The problem was not the algorithm, it
+was the goal: once column names are discarded, column order carries the only
+information separating those two answers, so *any* scheme that throws it away
+must score them equal. Column names cannot rescue it either — a model writing
+`AVG(salary)` where the reference writes `avg_sal` would then fail for naming
+rather than for being wrong.
+
+**Decision:** compare positionally, exactly as BIRD's and Spider's official
+evaluation scripts do. Row order is relaxed only when neither query has an
+`ORDER BY`. Numbers are compared to a tolerance of 1e-6, since two algebraically
+identical `AVG` queries can differ in the last bits and failing that would be
+measuring floating point rather than SQL.
+
+**Consequence, accepted:** returning `name, salary` when the reference returns
+`name` scores as wrong (this is demo question q09). Arguably the richer answer is
+more useful. But relaxing it would inflate our scores relative to published
+baselines and make any comparison to them meaningless — and a metric that
+flatters itself is worth nothing in review.
+
+Both false-pass cases are pinned in `tests/test_metrics.py`.
+
+---
+
+### D7 — The first crew is two agents, on purpose
+
+**Date:** 2026-08-25
+
+Phase 1 ships Writer plus Runner and nothing else — no critics, no repair, no
+Lead deciding headcount. That is not an unfinished version of the real crew; it
+is the control group.
+
+The entire claim of this project is that spinning up more agents buys accuracy
+worth its cost. That claim is unfalsifiable without a measured two-agent baseline
+to compare against. Building the full crew first and measuring afterwards would
+leave no way to attribute any of the result.
+
+**Baseline recorded:** 91.7% EX (11/12) on the demo set, `qwen2.5-coder:3b`.
+Every later phase is measured against that number.
