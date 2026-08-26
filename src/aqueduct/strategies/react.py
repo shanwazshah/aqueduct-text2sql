@@ -287,7 +287,7 @@ class ReactStrategy(Strategy):
             query = str(args.get("query", ""))
             if not query.strip():
                 return "ERROR: no query provided."
-            result = run_query(query)
+            result = run_query(query, db_url=ctx.db_url)
             if not result.ok:
                 return f"ERROR: {result.error}"
             return result.to_markdown(max_rows=10)

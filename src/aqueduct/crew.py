@@ -133,6 +133,7 @@ class Crew:
         memory: ErrorMemory | None = None,
         use_memory: bool = True,
         router=None,
+        db_url: str | None = None,
     ):
         from .strategies import DirectStrategy, get_strategy
 
@@ -141,10 +142,11 @@ class Crew:
         # a query's complexity from the question alone, which is guesswork; the
         # SQL itself states it.
         self.router = router
+        self.db_url = db_url
         self.repair = repair
         self.max_attempts = max_attempts or settings.max_repair_attempts
         self.usage = usage or Usage()
-        self.schema = schema or load_schema()
+        self.schema = schema or load_schema(db_url)
         self.use_memory = use_memory
         self.memory = memory if memory is not None else ErrorMemory()
 
@@ -181,8 +183,9 @@ class Crew:
                 schema=self.schema,
                 trace=trace,
                 usage=self.usage,
-                dialect=dialect_name(),
+                dialect=dialect_name(self.db_url),
                 memory_context=memory_context,
+                db_url=self.db_url,
             )
         )
         sql = draft.sql
@@ -191,7 +194,9 @@ class Crew:
         repair_mode = self.repair
         routed = None
         if self.router is not None:
-            routed = self.router.route(question, sql, dialect=dialect_name(), trace=trace)
+            routed = self.router.route(
+                question, sql, dialect=dialect_name(self.db_url), trace=trace
+            )
             repair_mode = routed.tier.repair_mode
 
         attempts: list[Attempt] = []
@@ -259,7 +264,7 @@ class Crew:
 
     def _run(self, sql: str, trace: Trace) -> QueryResult:
         with trace.span("runner", "executing query") as span:
-            result = run_query(sql)
+            result = run_query(sql, db_url=self.db_url)
             if result.ok:
                 span.finish(rows=result.row_count, ms=round(result.elapsed_ms, 1))
             else:

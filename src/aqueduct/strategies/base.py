@@ -36,6 +36,9 @@ class StrategyContext:
     usage: Usage
     dialect: str = "sqlite"
     memory_context: str = ""
+    # BIRD gives every question its own database, so the target cannot be a
+    # global setting.
+    db_url: str | None = None
 
     def client(self, role: str) -> LLMClient:
         """A client for one agent role, sharing this run's usage counter."""

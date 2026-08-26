@@ -11,3 +11,5 @@ data/raw/
 *.egg-info/
 *.log
 data/comparison.json
+aqueduct-src.zip
+data/bird/
