@@ -308,20 +308,70 @@ rows = run(sample, ["chain", "orchestrator"], databases,
 print(report(rows))
 """),
 
-    md("## 9 · Save the results\n\nDownload `bird_results.json` from the Output panel and send it back."),
+    md("""
+## 9 · Control run — the same questions on 3B
+
+Cells 7 and 8 changed two variables at once: model size **and** benchmark. The
+gap between `direct` and the decomposed strategies was 41 points on a 3B model
+over the demo set and 6 points here — but that cannot be attributed to scale
+while the benchmark also changed.
+
+This runs the identical 100 BIRD questions on `qwen2.5-coder:3b`. Same data,
+same grader, same code; only the model differs. That isolates it.
+
+Written to a separate file so the 7B numbers are left untouched.
+"""),
     code("""
-import json, shutil
+import os, pathlib, subprocess, sys
 
-shutil.copy(RESULTS, "/kaggle/working/bird_results_final.json")
-rows_raw = json.load(open("/kaggle/working/bird_results_final.json"))
-print(len(rows_raw), "rows saved")
+p = subprocess.Popen(["ollama", "pull", "qwen2.5-coder:3b"],
+                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+for line in p.stdout:
+    sys.stdout.write(line)
+assert p.wait() == 0
 
-for strategy in sorted({r["strategy"] for r in rows_raw}):
-    subset = [r for r in rows_raw if r["strategy"] == strategy]
-    correct = sum(1 for r in subset if r["correct"])
-    gen = sum(1 for r in subset if r["draft_correct"])
-    print(f"  {strategy:<14} gen {100 * gen / len(subset):5.1f}%   "
-          f"final {100 * correct / len(subset):5.1f}%   n={len(subset)}")
+for role in ("SQL", "CRITIC", "LEAD", "ANALYST"):
+    os.environ[f"AQ_MODEL_{role}"] = "qwen2.5-coder:3b"
+
+# Settings are read once at import, so the module has to be reloaded for the
+# new model names to take effect. The response cache keys on model name, so 3B
+# calls cannot collide with the 7B results already computed.
+import importlib
+import aqueduct.config
+importlib.reload(aqueduct.config)
+import aqueduct.llm.client
+importlib.reload(aqueduct.llm.client)
+print("sql model now:", aqueduct.config.settings.model_sql)
+
+CONTROL = pathlib.Path("/kaggle/working/bird_results_3b.json")
+rows_3b = run(sample, ["direct", "chain", "orchestrator"],
+              databases, repair=RepairMode.EXECUTION, path=CONTROL)
+print(report(rows_3b))
+"""),
+
+    md("## 10 · Save the results\n\nDownload both JSON files from the Output panel and send them back."),
+    code("""
+import json, pathlib
+
+for label, path in (("7B", "/kaggle/working/bird_results.json"),
+                    ("3B", "/kaggle/working/bird_results_3b.json")):
+    f = pathlib.Path(path)
+    if not f.exists():
+        print(f"{label}: not run")
+        continue
+    raw = json.load(open(f))
+    print(f"\\n=== {label} · {len(raw)} rows ===")
+    for strategy in sorted({r["strategy"] for r in raw}):
+        subset = [r for r in raw if r["strategy"] == strategy]
+        gen = 100 * sum(1 for r in subset if r["draft_correct"]) / len(subset)
+        fin = 100 * sum(1 for r in subset if r["correct"]) / len(subset)
+        cuts = {}
+        for level in ("simple", "moderate", "challenging"):
+            g = [r for r in subset if r["difficulty"] == level]
+            cuts[level] = f"{100 * sum(1 for r in g if r['correct']) / len(g):.0f}%" if g else "-"
+        print(f"  {strategy:<14} gen {gen:5.1f}%  final {fin:5.1f}%  n={len(subset):<5}"
+              f"simple {cuts['simple']:>5}  moderate {cuts['moderate']:>5}"
+              f"  challenging {cuts['challenging']:>5}")
 """),
 ]
 

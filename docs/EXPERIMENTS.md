@@ -566,3 +566,68 @@ instinct is always to debug the system rather than the ruler.
 
 **Status.** Phases 0-4 complete. The remaining work is the part that can still
 overturn the conclusion: BIRD on the Kaggle 7B tier.
+
+## 2026-08-26 — Phase 6: BIRD mini-dev on 7B, and the gap collapses
+
+**Setup.** 100 questions stratified from BIRD mini-dev (30 simple / 50 moderate /
+20 challenging), 11 real databases, `qwen2.5-coder:7b` served by Ollama on a
+Kaggle T4. Execution repair on, memory off, same grader as every earlier phase.
+
+### Result
+
+| strategy | gen EX | final EX | rescued by repair |
+|---|---|---|---|
+| **`direct`** | **41.0%** | **42.0%** | +1.0 |
+| `chain` | 35.0% | 41.0% | +6.0 |
+| `orchestrator` | 32.0% | 35.0% | +3.0 |
+
+**41–42% on BIRD mini-dev is a credible 7B-class number** — published results
+for models this size sit in the 25–45% band. That is the first external check
+this project has had, and the harness passes it. A score near the demo set's
+95% would have meant a bug.
+
+### The headline: the decomposition penalty nearly vanished
+
+| strategy | gap behind `direct` (gen), 3B / demo set | gap, 7B / BIRD |
+|---|---|---|
+| `chain` | **40.9 points** | **6.0 points** |
+| `orchestrator` | **50.0 points** | **9.0 points** |
+
+On final EX, `chain` at 41.0% is within a single point of `direct` at 42.0%. At
+3B it trailed by 27.
+
+This is the first evidence for the hypothesis Phase 3 raised: that decomposition
+requires a capability threshold, and the workflow patterns in the source
+notebooks fail on small models not because they are wrong but because each stage
+needs to be reliable enough for the next one to build on.
+
+### What cannot be claimed yet
+
+**Two variables changed at once: model size *and* benchmark.** 3B was measured on
+22 easy demo questions; 7B on 100 real BIRD questions. The gap narrowing is
+consistent with scale closing it — and equally consistent with BIRD being hard
+enough to compress every strategy toward the floor. A 41-point gap has less room
+to exist when the leader is at 41% than when it is at 91%.
+
+So the defensible statement today is *"the gap is 41 points in one setting and 6
+in another"*, not *"scale closes the gap"*.
+
+**The control that settles it** is running the same 100 BIRD questions on
+`qwen2.5-coder:3b` — same data, same grader, same code, only the model differs.
+Added as cell 9 of the Kaggle notebook. Until that lands, the causal claim stays
+unmade.
+
+### Repair, on a real benchmark
+
+Execution repair earned +1.0 on `direct`, +6.0 on `chain`, +3.0 on
+`orchestrator`. The Phase 2 finding holds at scale and on real data: repair is
+worth points, it costs a call only when a query actually fails, and the more
+error-prone the generator the more it recovers.
+
+Notable that `chain` gains six times what `direct` does. A pipeline produces more
+*executable but wrong* SQL, and execution feedback is precisely the signal that
+catches it.
+
+**Status.** The first result in this project that points *toward* the source
+notebooks rather than away from them. Awaiting the 3B control before the
+conclusion is stated as causal.
