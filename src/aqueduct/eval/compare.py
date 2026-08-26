@@ -116,7 +116,7 @@ def run(
                     correct=grade.correct,
                     reason=grade.reason,
                     sql=answer.sql,
-                    calls=answer.usage.calls,
+                    calls=answer.calls,
                     seconds=perf_counter() - start,
                     agents=answer.agents_used,
                     repaired=answer.was_repaired,

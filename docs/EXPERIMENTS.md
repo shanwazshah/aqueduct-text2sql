@@ -486,3 +486,83 @@ much verification effort a question deserves**, not which pipeline to run — wi
 `direct` generation as the fixed baseline and the router deciding what to spend on
 checking. That is a smaller claim than the one this project started with, and it
 is the one the evidence supports.
+
+## 2026-08-26 — Phase 4: routing, and the null result that ends the arc
+
+**What the router became.** Phase 3 showed there is nothing to route *to* — no
+strategy generates better than `direct`, and the elaborate ones generate far
+worse. So generation was fixed at `direct` and the router was pointed at the only
+decision the data left open: **how much verification a question deserves.**
+
+Grounding, from Phase 2: execution repair is worth +4.5 points and costs a call
+only when a query actually fails, so it is always on. Critic review costs a call
+on every question. The router's job is therefore to spend the critic call where
+it might pay — decided mechanically from the parsed SQL (joins, subqueries,
+HAVING, division, self-joins) at zero cost, with an LLM router built alongside
+for comparison.
+
+### Result
+
+| config | EX | verified | calls/q |
+|---|---|---|---|
+| **`trust-all`** | **95.5%** | 0/22 | **1.05** |
+| `verify-all` | 95.5% | 22/22 | 2.05 |
+| `router` (mechanical) | 95.5% | 15/22 | 1.73 |
+| `llm-router` | 95.5% | 9/22 | 1.45 |
+
+**All four identical. Every configuration missed exactly one question, q09, and
+it is the grading edge case from D6.**
+
+The router works — its decisions are sound, and it correctly identifies the
+multi-hop joins, per-group extremes and ratio queries as risky. But the option it
+gates has no value, so gating it can only add cost. `trust-all` is strictly
+optimal: same accuracy, cheapest, no routing logic at all.
+
+**The honest conclusion: the router is unnecessary, because the expensive option
+it exists to ration is worthless at this scale.**
+
+### The arc, stated in one place
+
+Three phases, three null results, one consistent story:
+
+  * **Phase 2** — model self-critique: +0.0 points for 2× the calls.
+  * **Phase 3** — decomposition: generation quality falls monotonically as
+    stages are added (90.9% → 50.0% → 40.9% → 4.5%).
+  * **Phase 4** — routing between those options: +0.0 points for 1.6× the calls.
+
+**At 3B, one good prompt plus execution feedback beats every multi-agent pattern
+in both source notebooks.** What earns its keep is not agents: it is the schema
+card (foreign keys and sample values), the safety guard, and the database's own
+error messages. Everything expensive is the model; everything valuable is free.
+
+The caveat that keeps this a finding rather than a verdict: **this is a 3B model
+on 22 questions.** These patterns come from work with frontier models. Nothing
+here is wasted if the picture inverts at 7B — the router is threshold-tunable,
+every strategy is behind one interface, and the harness measures generation
+separately from rescue. The infrastructure exists precisely so the Kaggle run can
+answer the question rather than assume it.
+
+### Two more bugs, both in my own instrumentation
+
+**The schema check was regex-based and flagged correct queries.** It reported
+output aliases (`SUM(amount) AS total_value`), string literals (`'cancelled'`),
+type names (`REAL`) and functions (`CAST`) as nonexistent columns. Every one
+fired on a query that was right, and each would have triggered a pointless repair
+— and through the router, spent a critic call reviewing SQL with nothing wrong
+with it. A keyword denylist cannot fix this, because identifiers only have
+meaning in a grammatical position. Rewritten on the sqlglot AST; all false
+positives gone, all real hallucinations still caught.
+
+**`sqlglot.parse_one` does not raise on prose.** `parse_one("this is not sql")`
+returns a column expression, so the router's `except` branch never fired and
+garbage scored **0 — trusted**. The worst possible direction for that error to
+run in. Fixed by checking the root node is actually a `SELECT`, caught by a test
+written to assert the opposite.
+
+That is now five instrumentation bugs across the project, against zero bugs found
+in the agent logic. **The measuring apparatus has been consistently less reliable
+than the thing being measured** — which is worth stating plainly, because the
+instinct is always to debug the system rather than the ruler.
+
+**Status.** Phases 0-4 complete. The remaining work is the part that can still
+overturn the conclusion: BIRD on the Kaggle 7B tier.

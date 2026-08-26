@@ -72,6 +72,15 @@ class Answer:
     explanation: str | None = None
     lesson_learned: bool = False
 
+    # Calls made answering THIS question. `usage` is a running total that may be
+    # shared across a whole sweep, so reading `usage.calls` per answer sums
+    # cumulatively and inflates cost. That bug put 11.5 calls/question against a
+    # one-call strategy in the Phase 2 table.
+    calls: int = 0
+
+    # The routing decision, when a router was used.
+    routed: object | None = None
+
     @property
     def ok(self) -> bool:
         return self.result.ok
@@ -123,9 +132,15 @@ class Crew:
         usage: Usage | None = None,
         memory: ErrorMemory | None = None,
         use_memory: bool = True,
+        router=None,
     ):
         from .strategies import DirectStrategy, get_strategy
 
+        # When a router is supplied it overrides `repair` per question, after
+        # seeing the generated SQL. Routing before generation would mean judging
+        # a query's complexity from the question alone, which is guesswork; the
+        # SQL itself states it.
+        self.router = router
         self.repair = repair
         self.max_attempts = max_attempts or settings.max_repair_attempts
         self.usage = usage or Usage()
@@ -153,6 +168,7 @@ class Crew:
         from .strategies import StrategyContext
 
         trace = Trace(question)
+        calls_before = self.usage.calls
         memory_context = (
             self.memory.render_for_prompt(question) if self.use_memory else ""
         )
@@ -172,14 +188,20 @@ class Crew:
         sql = draft.sql
         original_sql, original_error = sql, None
 
+        repair_mode = self.repair
+        routed = None
+        if self.router is not None:
+            routed = self.router.route(question, sql, dialect=dialect_name(), trace=trace)
+            repair_mode = routed.tier.repair_mode
+
         attempts: list[Attempt] = []
 
         for attempt_no in range(1, self.max_attempts + 1):
             result = self._run(sql, trace)
-            review = self._review(question, sql, result, trace)
+            review = self._review(question, sql, result, trace, repair_mode)
             attempt = Attempt(sql=sql, result=result, review=review)
 
-            feedback = self._feedback(result, review)
+            feedback = self._feedback(result, review, repair_mode)
             last_attempt = attempt_no >= self.max_attempts
 
             if feedback is None:
@@ -219,6 +241,8 @@ class Crew:
             trace=trace,
             usage=self.usage,
             attempts=attempts,
+            calls=self.usage.calls - calls_before,
+            routed=routed,
         )
 
         answer.lesson_learned = self._learn(
@@ -243,7 +267,12 @@ class Crew:
         return result
 
     def _review(
-        self, question: str, sql: str, result: QueryResult, trace: Trace
+        self,
+        question: str,
+        sql: str,
+        result: QueryResult,
+        trace: Trace,
+        mode: RepairMode | None = None,
     ) -> Review | None:
         """Run the Critic, if this mode uses it.
 
@@ -251,16 +280,22 @@ class Crew:
         a precise reason, and spending a model call to obtain a vaguer one adds
         latency without adding information.
         """
-        if not self.repair.uses_critique or not result.ok:
+        if not (mode or self.repair).uses_critique or not result.ok:
             return None
         return self.critic.review(question, sql, schema=self.schema, trace=trace)
 
-    def _feedback(self, result: QueryResult, review: Review | None) -> str | None:
+    def _feedback(
+        self,
+        result: QueryResult,
+        review: Review | None,
+        mode: RepairMode | None = None,
+    ) -> str | None:
         """What to tell the Fixer, or None to accept the answer."""
-        if self.repair is RepairMode.NONE:
+        mode = mode or self.repair
+        if mode is RepairMode.NONE:
             return None
 
-        if not result.ok and self.repair.uses_execution:
+        if not result.ok and mode.uses_execution:
             return f"The database rejected the query: {result.error}"
 
         if not result.ok:

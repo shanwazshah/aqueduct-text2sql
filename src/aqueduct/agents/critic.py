@@ -20,10 +20,11 @@ does this query answer what was asked?
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 
+import sqlglot
 from pydantic import BaseModel, Field
+from sqlglot import exp
 
 from ..db.introspect import Schema
 from ..llm.client import LLMClient, LLMError
@@ -111,107 +112,125 @@ class Review:
 
 # ── mechanical checks ────────────────────────────────────────────────
 
-# Identifiers that appear after FROM/JOIN, or in table.column form. Deliberately
-# simple: it is a screen for obvious hallucination, not a SQL parser.
-_TABLE_REF = re.compile(r"\b(?:FROM|JOIN)\s+[\"'`\[]?(\w+)", re.IGNORECASE)
-_QUALIFIED = re.compile(r"\b(\w+)\.(\w+)\b")
 
-_SQL_KEYWORDS = {
-    "select", "from", "where", "group", "order", "by", "having", "join", "on",
-    "as", "and", "or", "not", "in", "is", "null", "count", "sum", "avg", "min",
-    "max", "distinct", "limit", "offset", "left", "right", "inner", "outer",
-    "full", "cross", "union", "all", "case", "when", "then", "else", "end",
-    "asc", "desc", "with", "over", "partition",
-}
+def check_against_schema(sql: str, schema: Schema, dialect: str = "sqlite") -> list[str]:
+    """Verify that every table and column in a query actually exists.
 
+    This is a set-membership test with an exact answer. Handing it to a language
+    model — as the source notebooks do via `schema_ok` in the critique JSON —
+    turns a decidable question into a probabilistic one, and Phase 1 measured a
+    3B model getting it backwards with 0.9 confidence.
 
-def check_against_schema(sql: str, schema: Schema) -> list[str]:
-    """Verify tables and columns exist, without asking a model.
+    **Parsed, not pattern-matched.** The first implementation used regular
+    expressions over the query text and reported three classes of column that
+    were never columns at all:
 
-    This is a set-membership test. Handing it to a language model — as the source
-    notebooks do via `schema_ok` in the critique JSON — converts a decidable
-    question into a probabilistic one, and Phase 1 showed a 3B model getting it
-    backwards with 0.9 confidence.
+        SELECT SUM(amount) AS total_value FROM orders
+            -> "column 'total_value' does not exist"      (an output alias)
 
-    Aliases are resolved so `e.department` is checked against `employees`.
+        SELECT CAST(SUM(CASE WHEN status = 'cancelled' ...) AS REAL) ...
+            -> "column 'cancelled' does not exist"        (a string literal)
+            -> "column 'real' does not exist"             (a type name)
+            -> "column 'cast' does not exist"             (a function)
+
+    Every one of those fired on a query that was correct, and each would have
+    triggered a pointless repair — and, through the router, spent a critic call
+    to review a query that had nothing wrong with it. A keyword list cannot fix
+    this: the problem is that identifiers only have meaning in a grammatical
+    position, and only a parser knows the position.
+
+    Returns human-readable errors, phrased for the Fixer to act on. Anything the
+    parser cannot resolve is passed over in silence — a false negative costs a
+    missed hint, while a false positive costs a wasted rewrite of correct SQL.
     """
-    errors: list[str] = []
-    known_tables = {t.name.lower(): t for t in schema.tables}
+    if not sql or not sql.strip():
+        return []
+
+    try:
+        tree = sqlglot.parse_one(sql, dialect=dialect)
+    except Exception:
+        return []  # unparseable SQL is the safety guard's problem, not ours
+    if tree is None:
+        return []
+
     columns_by_table = {
         t.name.lower(): {c.name.lower() for c in t.columns} for t in schema.tables
     }
-    all_columns = {c for cols in columns_by_table.values() for c in cols}
+    errors: list[str] = []
 
-    referenced = {m.lower() for m in _TABLE_REF.findall(sql)}
-    for table in referenced:
-        if table not in known_tables:
-            close = _closest(table, known_tables.keys())
-            hint = f" Did you mean '{close}'?" if close else ""
-            errors.append(f"table '{table}' does not exist.{hint}")
+    # Names introduced by the query itself are not schema objects: CTEs and
+    # subquery aliases are legitimate targets that no table list will contain.
+    local_names = {cte.alias.lower() for cte in tree.find_all(exp.CTE) if cte.alias}
+    for subquery in tree.find_all(exp.Subquery):
+        if subquery.alias:
+            local_names.add(subquery.alias.lower())
 
-    aliases = _alias_map(sql, set(known_tables))
+    # ── tables ──
+    referenced: set[str] = set()
+    aliases: dict[str, str] = {}
 
-    for qualifier, column in _QUALIFIED.findall(sql):
-        q, c = qualifier.lower(), column.lower()
-        if c in _SQL_KEYWORDS:
+    for table in tree.find_all(exp.Table):
+        name = (table.name or "").lower()
+        if not name or name in local_names:
             continue
-        table = aliases.get(q, q)
-        if table not in columns_by_table:
-            continue  # unknown table already reported above
-        if c not in columns_by_table[table]:
-            close = _closest(c, columns_by_table[table])
+        if name in columns_by_table:
+            referenced.add(name)
+            aliases[name] = name
+            if table.alias:
+                aliases[table.alias.lower()] = name
+        else:
+            close = _closest(name, columns_by_table.keys())
             hint = f" Did you mean '{close}'?" if close else ""
-            errors.append(f"column '{column}' does not exist on table '{table}'.{hint}")
+            message = f"table '{table.name}' does not exist.{hint}"
+            if message not in errors:
+                errors.append(message)
 
-    # Unqualified columns. When the query touches exactly one table, that
-    # table's columns are the candidate set — which makes the "did you mean"
-    # hint useful. Searching every column in the database instead produced
-    # `dept -> budget` when the answer was plainly `department_id`.
-    single_table = referenced & set(columns_by_table)
-    candidates = (
-        columns_by_table[next(iter(single_table))]
-        if len(single_table) == 1
-        else all_columns
-    )
+    # A query built on a CTE cannot have its columns resolved against the base
+    # schema, so column checking is skipped rather than guessed at.
+    if local_names:
+        return errors
 
-    for token in _unqualified_identifiers(sql):
-        if token not in candidates and token not in known_tables:
-            close = _closest(token, candidates)
+    # ── columns ──
+    # Output aliases are defined by the query, so `... AS total_value` must not
+    # be looked up as though it were a stored column.
+    defined = {
+        alias.alias.lower() for alias in tree.find_all(exp.Alias) if alias.alias
+    }
+
+    in_scope: set[str] = set()
+    for name in referenced:
+        in_scope |= columns_by_table[name]
+
+    for column in tree.find_all(exp.Column):
+        name = (column.name or "").lower()
+        qualifier = (column.table or "").lower()
+        if not name or name == "*" or name in defined:
+            continue
+
+        if qualifier:
+            table = aliases.get(qualifier)
+            if table is None:
+                continue  # unknown qualifier: already reported, or out of scope
+            if name not in columns_by_table[table]:
+                close = _closest(name, columns_by_table[table])
+                hint = f" Did you mean '{close}'?" if close else ""
+                message = f"column '{column.name}' does not exist on table '{table}'.{hint}"
+                if message not in errors:
+                    errors.append(message)
+        elif in_scope and name not in in_scope:
+            # Unqualified. Suggestions come from the single referenced table
+            # when there is one; searching the whole database produced
+            # `dept -> budget` when the answer was plainly `department_id`.
+            candidates = (
+                columns_by_table[next(iter(referenced))] if len(referenced) == 1 else in_scope
+            )
+            close = _closest(name, candidates)
             hint = f" Did you mean '{close}'?" if close else ""
-            errors.append(f"column '{token}' does not exist.{hint}")
+            message = f"column '{column.name}' does not exist.{hint}"
+            if message not in errors:
+                errors.append(message)
 
     return errors
-
-
-def _alias_map(sql: str, tables: set[str]) -> dict[str, str]:
-    """Map alias -> real table name, for `FROM employees AS e` and `FROM employees e`."""
-    pattern = re.compile(
-        r"\b(?:FROM|JOIN)\s+[\"'`\[]?(\w+)[\"'`\]]?\s+(?:AS\s+)?(\w+)", re.IGNORECASE
-    )
-    aliases = {t: t for t in tables}
-    for table, alias in pattern.findall(sql):
-        if alias.lower() not in _SQL_KEYWORDS and table.lower() in tables:
-            aliases[alias.lower()] = table.lower()
-    return aliases
-
-
-def _unqualified_identifiers(sql: str) -> set[str]:
-    """Bare identifiers in the SELECT list, for single-table queries.
-
-    Only applied when the query has no alias-qualified references, since
-    resolving a bare column across joined tables needs a real parser and the
-    guesses would produce false positives.
-    """
-    if "." in sql:
-        return set()
-    match = re.search(r"\bSELECT\b(.*?)\bFROM\b", sql, re.IGNORECASE | re.DOTALL)
-    if not match:
-        return set()
-    return {
-        token.lower()
-        for token in re.findall(r"\b[a-zA-Z_]\w*\b", match.group(1))
-        if token.lower() not in _SQL_KEYWORDS
-    }
 
 
 def _closest(name: str, candidates) -> str | None:

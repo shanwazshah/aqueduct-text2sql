@@ -40,7 +40,7 @@ def evaluate(
         grade = execution_accuracy(answer.sql, question.gold_sql)
 
         report.add(grade, question.difficulty, question.trap)
-        report.llm_calls += answer.usage.calls
+        report.llm_calls += answer.calls
         rows.append((question, answer, grade))
 
         if verbose:
