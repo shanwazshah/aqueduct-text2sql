@@ -67,15 +67,30 @@ Kaggle's preinstalled torch. It has no continuous batching, which costs
 throughput — but a lost 40-minute vLLM install costs more, and the runner is
 resumable either way.
 
+**`zstd` first.** From v0.33 Ollama ships its release as `.tar.zst`, and the
+install script aborts with `This version requires zstd for extraction` on any
+image that lacks it — which includes Kaggle's. The failure surfaces later as a
+bare `FileNotFoundError: 'ollama'`, so it is worth installing up front rather
+than diagnosing twice.
+
 ```python
-import os, subprocess, time, urllib.request
+import os, shutil, subprocess, time, urllib.request
 
-!curl -fsSL https://ollama.com/install.sh | sh 2>&1 | tail -2
+!apt-get -qq update && apt-get -qq install -y zstd
+print("zstd:", shutil.which("zstd"))
 
+r = subprocess.run("curl -fsSL https://ollama.com/install.sh | sh",
+                   shell=True, capture_output=True, text=True)
+print("install exit:", r.returncode)
+print(r.stdout[-600:], r.stderr[-600:])
+
+os.environ["PATH"] = "/usr/local/bin:" + os.environ["PATH"]
 os.environ["OLLAMA_HOST"] = "127.0.0.1:11434"
-subprocess.Popen(["ollama", "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+print("binary:", shutil.which("ollama"))
+assert shutil.which("ollama"), "still missing - paste the output above"
 
-for _ in range(60):
+subprocess.Popen(["ollama", "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+for _ in range(90):
     try:
         urllib.request.urlopen("http://127.0.0.1:11434/api/version", timeout=2)
         print("ollama up"); break
@@ -83,8 +98,14 @@ for _ in range(60):
         time.sleep(2)
 else:
     raise RuntimeError("ollama did not start")
+```
 
-!ollama pull qwen2.5-coder:7b 2>&1 | tail -1
+## Cell 3b — pull the model
+
+Separate cell so the progress bar is visible. 4.7 GB, roughly five minutes.
+
+```python
+!ollama pull qwen2.5-coder:7b
 !nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 ```
 
