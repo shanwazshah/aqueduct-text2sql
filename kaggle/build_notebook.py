@@ -41,30 +41,41 @@ def code(text: str) -> dict:
 
 CELLS = [
     md(f"""
-# Aqueduct — BIRD mini-dev on a 7B model
+# Aqueduct — does decomposition need a capable model?
 
-**Before running:** right-hand panel → Accelerator **GPU T4 x2**, Internet **On**.
+**Before running, set all three in the right-hand panel:**
 
-Then *Run All*. Total runtime is roughly 40 minutes to the first result
-(cell 7), plus 2–3 hours for the comparison (cell 8).
-
-## The question this answers
-
-On a 3B model, every multi-agent pattern from the source notebooks either
-matched or badly underperformed a single LLM call:
-
-| strategy | generation EX |
+| setting | value |
 |---|---|
-| `direct` | 90.9% |
-| `chain` | 50.0% |
-| `orchestrator` | 40.9% |
+| Accelerator | **GPU T4 x2** |
+| Internet | **On** |
+| Persistence | **Files only** |
 
-Those patterns come from work with frontier models. **Does the picture invert
-at 7B?** That is what cells 7 and 8 measure.
+Persistence matters. Without it a session reset deletes `/kaggle/working`, and
+several hours of results go with it.
 
-Expect BIRD scores far below the demo numbers — published 7B-class results sit
-around 25–45%. Anything near 90% means the harness is broken, not that the
-model is remarkable.
+Then *Run All*. Roughly five hours end to end — about three for the 7B sweep and
+two for the 3B control. Every sweep checkpoints after each question, so a dropped
+session resumes rather than restarts.
+
+## The question
+
+On a 3B model over an easy 22-question demo set, every multi-agent pattern from
+the source notebooks badly underperformed a single LLM call — `chain` by 41
+points, `orchestrator` by 50.
+
+Those patterns come from work with frontier models, which suggests they may need
+a capability threshold rather than being wrong outright. **Does the gap close as
+the model gets bigger?**
+
+This notebook runs **both** model sizes over the **same 100 BIRD questions**, so
+the only thing that differs is the model. An earlier attempt compared 3B on the
+demo set against 7B on BIRD, and changing two variables at once left the result
+unattributable.
+
+Expect absolute scores far below the demo numbers — published 7B-class BIRD
+results sit around 25–45%. Anything near 90% means the harness is broken, not
+that the model is remarkable.
 """),
 
     md("## 1 · Dependencies and project code"),
@@ -273,98 +284,104 @@ assert not missing, "some databases are missing - cell 5 did not finish"
 """),
 
     md("""
-## 7 · The headline run — `direct`
+## 7 · The experiment harness
 
-The control group. One LLM call per question, execution repair on. Roughly 40
-minutes.
+Both model sizes run the **same 100 questions**, through the same grader and the
+same code. Only the model changes — which is the whole point: an earlier attempt
+compared 3B on an easy demo set against 7B on BIRD, and changing two variables at
+once made the result unattributable.
 
-Checkpointed after every question: if the session drops, re-run this cell and it
-resumes where it stopped.
+Each model writes to its own file and checkpoints after every question. If the
+session drops, re-run the cell and it resumes.
 """),
     code("""
-import pathlib
+import importlib, os, pathlib, subprocess, sys
+
 from aqueduct.eval.bird_run import run, report
 from aqueduct.crew import RepairMode
 
-RESULTS = pathlib.Path("/kaggle/working/bird_results.json")
+STRATEGIES = ["direct", "chain", "orchestrator"]
 
-rows = run(sample, ["direct"], databases, repair=RepairMode.EXECUTION, path=RESULTS)
-print(report(rows))
+
+def run_for_model(model: str, out_path: str):
+    \"\"\"Point the whole stack at `model` and sweep the sample.\"\"\"
+    p = subprocess.Popen(["ollama", "pull", model],
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    for line in p.stdout:
+        sys.stdout.write(line)
+    assert p.wait() == 0, f"pull of {model} failed - re-run, it resumes"
+
+    for role in ("SQL", "CRITIC", "LEAD", "ANALYST"):
+        os.environ[f"AQ_MODEL_{role}"] = model
+
+    # Settings are read at import time, so the modules holding them must be
+    # reloaded for new model names to take effect. The response cache keys on
+    # model name, so the two models cannot contaminate each other.
+    import aqueduct.config
+    importlib.reload(aqueduct.config)
+    import aqueduct.llm.client
+    importlib.reload(aqueduct.llm.client)
+    print("model now:", aqueduct.config.settings.model_sql, flush=True)
+
+    rows = run(sample, STRATEGIES, databases,
+               repair=RepairMode.EXECUTION, path=pathlib.Path(out_path))
+    print(report(rows))
+    return rows
+
+
+print("harness ready")
 """),
 
     md("""
-## 8 · Does decomposition invert at 7B?
+## 8 · Run the 7B model
 
-The actual experiment. `chain` and `orchestrator` were 40 and 50 points behind
-`direct` at 3B. If that gap narrows or reverses here, decomposition needs a
-capability threshold and the source notebooks are right about frontier models
-and wrong about small ones. If it holds, the 3B finding generalises.
-
-Two to three hours. Resumable.
+Roughly three hours for all three strategies. Resumable.
 """),
     code("""
-rows = run(sample, ["chain", "orchestrator"], databases,
-           repair=RepairMode.EXECUTION, path=RESULTS)
-print(report(rows))
+rows_7b = run_for_model("qwen2.5-coder:7b", "/kaggle/working/bird_results_7b.json")
 """),
 
     md("""
-## 9 · Control run — the same questions on 3B
+## 9 · Run the 3B model — the control
 
-Cells 7 and 8 changed two variables at once: model size **and** benchmark. The
-gap between `direct` and the decomposed strategies was 41 points on a 3B model
-over the demo set and 6 points here — but that cannot be attributed to scale
-while the benchmark also changed.
+The same 100 questions on the smaller model. This is what makes the comparison
+causal: if the gap between `direct` and the decomposed strategies is wide here
+and narrow at 7B, scale is what closes it. If both are narrow, the benchmark was
+doing the work and the earlier 3B finding was overfit to an easy demo set.
 
-This runs the identical 100 BIRD questions on `qwen2.5-coder:3b`. Same data,
-same grader, same code; only the model differs. That isolates it.
-
-Written to a separate file so the 7B numbers are left untouched.
+Roughly two hours.
 """),
     code("""
-import os, pathlib, subprocess, sys
-
-p = subprocess.Popen(["ollama", "pull", "qwen2.5-coder:3b"],
-                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-for line in p.stdout:
-    sys.stdout.write(line)
-assert p.wait() == 0
-
-for role in ("SQL", "CRITIC", "LEAD", "ANALYST"):
-    os.environ[f"AQ_MODEL_{role}"] = "qwen2.5-coder:3b"
-
-# Settings are read once at import, so the module has to be reloaded for the
-# new model names to take effect. The response cache keys on model name, so 3B
-# calls cannot collide with the 7B results already computed.
-import importlib
-import aqueduct.config
-importlib.reload(aqueduct.config)
-import aqueduct.llm.client
-importlib.reload(aqueduct.llm.client)
-print("sql model now:", aqueduct.config.settings.model_sql)
-
-CONTROL = pathlib.Path("/kaggle/working/bird_results_3b.json")
-rows_3b = run(sample, ["direct", "chain", "orchestrator"],
-              databases, repair=RepairMode.EXECUTION, path=CONTROL)
-print(report(rows_3b))
+rows_3b = run_for_model("qwen2.5-coder:3b", "/kaggle/working/bird_results_3b.json")
 """),
 
-    md("## 10 · Save the results\n\nDownload both JSON files from the Output panel and send them back."),
+    md("""
+## 10 · The comparison
+
+The number that matters is the **gap** between `direct` and the decomposed
+strategies, and how that gap changes with model size.
+
+Download both JSON files from the Output panel — they carry the per-question
+detail behind this summary.
+"""),
     code("""
 import json, pathlib
 
-for label, path in (("7B", "/kaggle/working/bird_results.json"),
-                    ("3B", "/kaggle/working/bird_results_3b.json")):
+summary = {}
+for label, path in (("3B", "/kaggle/working/bird_results_3b.json"),
+                    ("7B", "/kaggle/working/bird_results_7b.json")):
     f = pathlib.Path(path)
     if not f.exists():
         print(f"{label}: not run")
         continue
     raw = json.load(open(f))
-    print(f"\\n=== {label} · {len(raw)} rows ===")
+    summary[label] = {}
+    print(f"\\n=== {label} - {len(raw)} rows ===")
     for strategy in sorted({r["strategy"] for r in raw}):
         subset = [r for r in raw if r["strategy"] == strategy]
         gen = 100 * sum(1 for r in subset if r["draft_correct"]) / len(subset)
         fin = 100 * sum(1 for r in subset if r["correct"]) / len(subset)
+        summary[label][strategy] = gen
         cuts = {}
         for level in ("simple", "moderate", "challenging"):
             g = [r for r in subset if r["difficulty"] == level]
@@ -372,6 +389,17 @@ for label, path in (("7B", "/kaggle/working/bird_results.json"),
         print(f"  {strategy:<14} gen {gen:5.1f}%  final {fin:5.1f}%  n={len(subset):<5}"
               f"simple {cuts['simple']:>5}  moderate {cuts['moderate']:>5}"
               f"  challenging {cuts['challenging']:>5}")
+
+if len(summary) == 2:
+    print("\\n=== gap behind `direct`, by model size (generation EX) ===")
+    print(f"{'strategy':<16}{'3B':>8}{'7B':>8}{'change':>10}")
+    for strategy in ("chain", "orchestrator"):
+        g3 = summary["3B"].get("direct", 0) - summary["3B"].get(strategy, 0)
+        g7 = summary["7B"].get("direct", 0) - summary["7B"].get(strategy, 0)
+        print(f"{strategy:<16}{g3:>7.1f}{g7:>8.1f}{g7 - g3:>+10.1f}")
+    print("\\nA gap that shrinks with scale supports the capability-threshold")
+    print("reading. A gap that is already small at 3B means the earlier demo-set")
+    print("result was overfit to easy questions.")
 """),
 ]
 
