@@ -27,21 +27,14 @@ every question and resumes automatically, so a lost session costs time, not work
 
 ## Getting the code across
 
-> ⚠️ **Nothing in this section goes into Kaggle.** Only the blocks labelled
-> **Cell 1** through **Cell 9** below are notebook cells. Pasting a Windows path
-> into a Kaggle cell fails with `No such file or directory`.
+> **Two different machines.** Anything mentioning `D:/` or `gh` runs on your own
+> laptop. Only the blocks labelled **Cell 1** to **Cell 9** are pasted into
+> Kaggle. Kaggle is a Linux box in the cloud — it has no D: drive and no access
+> to your files.
 
-`aqueduct-src.zip` is already built in the repo root. Upload that file via
-*Kaggle → Datasets → New Dataset*, name it **`aqueduct-src`**, then attach it to
-the notebook with **+ Add Input**.
-
-To rebuild it after changing the code, run this **on your own machine**:
-
-```bash
-python -m zipfile -c aqueduct-src.zip src tests pytest.ini
-```
-
-If you would rather use GitHub, push the repo and swap cell 2 for a `git clone`.
+The repo is public at
+**https://github.com/shanwazshah/aqueduct-text2sql**, so Kaggle clones it
+directly. No dataset upload, no token.
 
 ---
 
@@ -54,43 +47,18 @@ print("deps ok")
 
 ## Cell 2 — project code
 
-Kaggle usually **extracts** an uploaded zip, so `/kaggle/input/aqueduct-src/`
-tends to contain `src/` directly rather than the archive. This handles either
-layout and prints what it actually found.
-
 ```python
-import pathlib, sys, zipfile
-
-INPUT = pathlib.Path("/kaggle/input")
-WORK  = pathlib.Path("/kaggle/working")
-
-print("attached inputs:")
-for p in sorted(INPUT.glob("*")):
-    print("   ", p)
-    for child in sorted(p.glob("*"))[:6]:
-        print("      ", child.name)
-
-# Case A: Kaggle already unzipped it — find the package directly.
-marker = next(INPUT.rglob("aqueduct/config.py"), None)
-if marker:
-    src_root = marker.parent.parent          # .../src
-    sys.path.insert(0, str(src_root))
-    print("using extracted code at", src_root)
-else:
-    # Case B: it really is still a zip.
-    z = next(INPUT.rglob("*.zip"), None)
-    assert z, "No dataset attached. Use '+ Add Input' and attach aqueduct-src."
-    with zipfile.ZipFile(z) as f:
-        f.extractall(WORK)
-    sys.path.insert(0, str(WORK / "src"))
-    print("extracted", z)
-
+import sys
+!rm -rf /kaggle/working/aq
+!git clone -q https://github.com/shanwazshah/aqueduct-text2sql.git /kaggle/working/aq
+sys.path.insert(0, "/kaggle/working/aq/src")
 import aqueduct
 print("import ok:", aqueduct.__file__)
 ```
 
-If "attached inputs:" prints nothing beneath it, the dataset is not attached:
-right panel → **+ Add Input** → search `aqueduct-src` → click **+**.
+Expect `import ok: /kaggle/working/aq/src/aqueduct/__init__.py`.
+
+To pick up later code changes, just re-run this cell — it re-clones from scratch.
 
 ## Cell 3 — serve the model
 
