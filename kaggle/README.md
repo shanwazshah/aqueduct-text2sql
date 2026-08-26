@@ -75,8 +75,7 @@ marker = next(INPUT.rglob("aqueduct/config.py"), None)
 if marker:
     src_root = marker.parent.parent          # .../src
     sys.path.insert(0, str(src_root))
-    print("
-using extracted code at", src_root)
+    print("using extracted code at", src_root)
 else:
     # Case B: it really is still a zip.
     z = next(INPUT.rglob("*.zip"), None)
@@ -84,8 +83,7 @@ else:
     with zipfile.ZipFile(z) as f:
         f.extractall(WORK)
     sys.path.insert(0, str(WORK / "src"))
-    print("
-extracted", z)
+    print("extracted", z)
 
 import aqueduct
 print("import ok:", aqueduct.__file__)
