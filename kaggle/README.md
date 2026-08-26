@@ -27,11 +27,18 @@ every question and resumes automatically, so a lost session costs time, not work
 
 ## Getting the code across
 
-Run this **locally** first, then upload `aqueduct-src.zip` via
-*Kaggle → Datasets → New Dataset*. Name it `aqueduct-src`.
+> ⚠️ **Nothing in this section goes into Kaggle.** Only the blocks labelled
+> **Cell 1** through **Cell 9** below are notebook cells. Pasting a Windows path
+> into a Kaggle cell fails with `No such file or directory`.
+
+`aqueduct-src.zip` is already built in the repo root. Upload that file via
+*Kaggle → Datasets → New Dataset*, name it **`aqueduct-src`**, then attach it to
+the notebook with **+ Add Input**.
+
+To rebuild it after changing the code, run this **on your own machine**:
 
 ```bash
-cd "D:/Claude projects/Text-to-SQL" && python -m zipfile -c aqueduct-src.zip src tests pytest.ini
+python -m zipfile -c aqueduct-src.zip src tests pytest.ini
 ```
 
 If you would rather use GitHub, push the repo and swap cell 2 for a `git clone`.
@@ -47,19 +54,45 @@ print("deps ok")
 
 ## Cell 2 — project code
 
+Kaggle usually **extracts** an uploaded zip, so `/kaggle/input/aqueduct-src/`
+tends to contain `src/` directly rather than the archive. This handles either
+layout and prints what it actually found.
+
 ```python
-import shutil, sys, zipfile, pathlib
+import pathlib, sys, zipfile
 
-WORK = pathlib.Path("/kaggle/working")
-src_zip = next(pathlib.Path("/kaggle/input").rglob("aqueduct-src.zip"), None)
-assert src_zip, "Upload aqueduct-src.zip as a Kaggle dataset first."
+INPUT = pathlib.Path("/kaggle/input")
+WORK  = pathlib.Path("/kaggle/working")
 
-with zipfile.ZipFile(src_zip) as z:
-    z.extractall(WORK)
+print("attached inputs:")
+for p in sorted(INPUT.glob("*")):
+    print("   ", p)
+    for child in sorted(p.glob("*"))[:6]:
+        print("      ", child.name)
 
-sys.path.insert(0, str(WORK / "src"))
-print("code at", WORK / "src")
+# Case A: Kaggle already unzipped it — find the package directly.
+marker = next(INPUT.rglob("aqueduct/config.py"), None)
+if marker:
+    src_root = marker.parent.parent          # .../src
+    sys.path.insert(0, str(src_root))
+    print("
+using extracted code at", src_root)
+else:
+    # Case B: it really is still a zip.
+    z = next(INPUT.rglob("*.zip"), None)
+    assert z, "No dataset attached. Use '+ Add Input' and attach aqueduct-src."
+    with zipfile.ZipFile(z) as f:
+        f.extractall(WORK)
+    sys.path.insert(0, str(WORK / "src"))
+    print("
+extracted", z)
+
+import aqueduct
+print("import ok:", aqueduct.__file__)
 ```
+
+If "attached inputs:" prints nothing beneath it, the dataset is not attached:
+right panel → **+ Add Input** → search `aqueduct-src` → click **+**.
 
 ## Cell 3 — serve the model
 
