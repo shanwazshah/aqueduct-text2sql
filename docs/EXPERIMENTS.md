@@ -631,3 +631,95 @@ catches it.
 **Status.** The first result in this project that points *toward* the source
 notebooks rather than away from them. Awaiting the 3B control before the
 conclusion is stated as causal.
+
+## 2026-08-27 — Phase 6 control: the earlier finding was mostly my test set
+
+The previous entry reported the decomposition gap "collapsing" from 41 points to
+6 and read it as evidence that scale closes it. That entry flagged the confound —
+model size and benchmark had both changed — and said the causal claim would stay
+unmade until a control ran.
+
+It has now run. **The confound was doing about 90% of the work.**
+
+### The control
+
+The same 100 BIRD questions, same grader, same code, on `qwen2.5-coder:3b`.
+
+| | 3B / demo set | 3B / BIRD | 7B / BIRD |
+|---|---|---|---|
+| `chain` gap behind `direct` | **40.9** | **9.0** | **6.0** |
+| `orchestrator` gap | **50.0** | **13.0** | **9.0** |
+
+Holding the model fixed at 3B and changing only the benchmark takes the `chain`
+gap from 40.9 to 9.0. Changing the model then takes it from 9.0 to 6.0.
+
+```
+chain          total narrowing 34.9 pts
+  benchmark change   31.9 pts   (91%)
+  model size          3.0 pts   ( 9%)
+
+orchestrator   total narrowing 41.0 pts
+  benchmark change   37.0 pts   (90%)
+  model size          4.0 pts   (10%)
+```
+
+### What this retracts
+
+**Phase 3's headline was overfit to the demo set.** "Generation quality falls
+monotonically as decomposition increases — 90.9% to 50.0% to 40.9%" described 22
+questions on a five-table toy schema, not Text-to-SQL. On a real benchmark the
+decomposition penalty is **6–13 points, not 41–50**.
+
+The mechanism for the inflation is straightforward in hindsight: `direct` scored
+90.9% on the demo set, which leaves 41 points of room *below* it for a gap to
+occupy. At 29% there is far less room, and every strategy is compressed toward
+the floor by the difficulty of the questions rather than separated by the merits
+of its design.
+
+A 22-question set was described at the time as "a smoke test, not a benchmark…
+here to catch regressions". That caveat was correct and then quietly ignored the
+moment the numbers looked interesting.
+
+### What survives
+
+**The direction is real, and small.** Scale narrows the gap for both strategies,
+−3.0 and −4.0, consistent in sign across two independent pipelines. That is the
+capability-threshold effect at its actual size.
+
+**`direct` still wins at both model sizes** — 29.0% vs 20.0/16.0 at 3B, 41.0% vs
+35.0/32.0 at 7B. Fewer moving parts still generates better SQL.
+
+**Repair helps most where generation is weakest**, at both sizes:
+
+| strategy | repair gain, 3B | repair gain, 7B |
+|---|---|---|
+| `direct` | +4.0 | +1.0 |
+| `chain` | **+10.0** | **+6.0** |
+| `orchestrator` | +2.0 | +3.0 |
+
+A pipeline emits more *executable but wrong* SQL, and execution feedback is
+precisely the signal that catches it. This has now held in every phase and on
+both benchmarks — the most durable result in the project.
+
+### One crossover worth watching
+
+On **challenging** questions at 7B, `chain` beats `direct`: **30% vs 25%**. That
+is the pattern behaving as its designers intended — hard problem, model capable
+enough for decomposition to pay.
+
+It is also 6 questions against 5, out of 20. **A hypothesis, not a finding.**
+Testing it properly means the full 500-question mini-dev, where the challenging
+stratum is 102 questions rather than 20.
+
+### The methodological lesson
+
+Two headline numbers in this project have now turned out to be artifacts:
+`react`'s 95.5%, which was the repair layer wearing its name, and Phase 3's
+41-point gap, which was the test set. Both were caught by a control rather than
+by inspection, and in both cases the raw number looked entirely plausible.
+
+Neither would have been caught by more careful reading of the code. What caught
+them was measuring the same thing a second way.
+
+**Status.** Phase 6 complete, including the retraction. The BIRD numbers are the
+ones to quote; the demo-set numbers are for regression testing and nothing else.
