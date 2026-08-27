@@ -180,3 +180,47 @@ def test_real_hallucinations_are_still_caught(sql, needle, schema):
     errors = check_against_schema(sql, schema)
     assert errors, f"missed a hallucination in: {sql}"
     assert any(needle in e for e in errors)
+
+
+# ── unknown qualifiers ───────────────────────────────────────────────
+#
+# `department.name` where the table is `departments` is the single most common
+# shape of this mistake. The database reports only `no such column:
+# department.name`, and a Fixer handed that alone returned the query unchanged.
+# Adding "did you mean 'departments'?" - free, no model call - turned a failed
+# question into a passing one.
+
+def test_unknown_qualifier_is_reported(schema):
+    errors = check_against_schema(
+        "SELECT COUNT(*), department.name FROM employees "
+        "JOIN departments ON employees.department_id = departments.id",
+        schema,
+    )
+    assert errors, "an unknown table qualifier must not be silently skipped"
+    assert any("department" in e for e in errors)
+
+
+def test_unknown_qualifier_suggests_the_right_table(schema):
+    errors = check_against_schema(
+        "SELECT department.name FROM departments", schema
+    )
+    assert any("departments" in e for e in errors)
+
+
+def test_valid_aliases_are_not_flagged_as_unknown(schema):
+    assert check_against_schema(
+        "SELECT e.name, d.name FROM employees e JOIN departments d "
+        "ON e.department_id = d.id",
+        schema,
+    ) == []
+
+
+def test_table_used_as_its_own_qualifier_is_fine(schema):
+    assert check_against_schema("SELECT employees.name FROM employees", schema) == []
+
+
+def test_cte_qualifier_is_not_flagged(schema):
+    """A CTE name is a legitimate qualifier that no table list contains."""
+    assert check_against_schema(
+        "WITH t AS (SELECT * FROM employees) SELECT t.name FROM t", schema
+    ) == []

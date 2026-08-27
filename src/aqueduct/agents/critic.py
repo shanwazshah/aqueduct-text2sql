@@ -210,7 +210,21 @@ def check_against_schema(sql: str, schema: Schema, dialect: str = "sqlite") -> l
         if qualifier:
             table = aliases.get(qualifier)
             if table is None:
-                continue  # unknown qualifier: already reported, or out of scope
+                # A qualifier that matches no table and no alias in this query.
+                # This was previously skipped as "out of scope", which missed the
+                # single most common shape of the mistake: `department.name` when
+                # the table is `departments`. The database says only
+                # `no such column: department.name`, and a Fixer given that alone
+                # tends to return the query unchanged.
+                close = _closest(qualifier, aliases.keys())
+                hint = f" Did you mean '{close}'?" if close else ""
+                message = (
+                    f"'{column.table}' is not a table or alias in this query."
+                    f"{hint} Available: {', '.join(sorted(aliases))}."
+                )
+                if message not in errors:
+                    errors.append(message)
+                continue
             if name not in columns_by_table[table]:
                 close = _closest(name, columns_by_table[table])
                 hint = f" Did you mean '{close}'?" if close else ""

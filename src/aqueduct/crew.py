@@ -164,12 +164,25 @@ class Crew:
 
     # ── main entry point ─────────────────────────────────────────────
 
-    def ask(self, question: str, *, explain: bool = False) -> Answer:
-        """Answer one question, repairing if the configured signals say to."""
+    def ask(
+        self,
+        question: str,
+        *,
+        explain: bool = False,
+        trace: Trace | None = None,
+    ) -> Answer:
+        """Answer one question, repairing if the configured signals say to.
+
+        A caller may pass its own `trace` to watch the run as it happens. The UI
+        does this: it creates the trace, starts `ask` on a worker thread, and
+        renders the span tree while the thread is still filling it in. Without
+        that hook the trace only becomes reachable once the answer is complete,
+        which is far too late to show an agent appearing.
+        """
         from .db.engine import dialect_name
         from .strategies import StrategyContext
 
-        trace = Trace(question)
+        trace = trace if trace is not None else Trace(question)
         calls_before = self.usage.calls
         memory_context = (
             self.memory.render_for_prompt(question) if self.use_memory else ""
@@ -301,7 +314,22 @@ class Crew:
             return None
 
         if not result.ok and mode.uses_execution:
-            return f"The database rejected the query: {result.error}"
+            # The database says *what* is wrong; the schema check says what the
+            # right name probably is. `no such column: department.name` left the
+            # Fixer returning the query unchanged, where
+            # `did you mean 'departments'?` gives it something to act on.
+            #
+            # This is free — no model call, no network — so it runs regardless
+            # of whether the critic is enabled.
+            from .agents.critic import check_against_schema
+
+            message = f"The database rejected the query: {result.error}"
+            hints = check_against_schema(result.sql, self.schema)
+            if hints:
+                message += "\n\nChecked against the real schema:\n" + "\n".join(
+                    f"  - {h}" for h in hints
+                )
+            return message
 
         if not result.ok:
             # Execution repair disabled (CRITIQUE mode): accept the failure so
