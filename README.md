@@ -1,14 +1,13 @@
 # Aqueduct
 
-**An agentic Text-to-SQL crew that sizes itself to the question.**
+**Six agentic Text-to-SQL architectures, benchmarked against each other — and the
+control run that showed my own headline result was mostly an artifact of my test
+set.**
 
-Ask a question in English. A Lead agent reads it, decides how many specialists the
-job needs, and spins up only those. A simple count gets two agents and an answer
-in seconds. A four-table analytical question gets seven.
-
-The other half of the project is the part that makes the first half a claim rather
-than a hope: an evaluation harness that measures whether the extra agents are
-worth what they cost.
+The project started as an implementation exercise from two course notebooks on
+agent design. It became an evaluation project, because once the six architectures
+were measurable it turned out most of them do not work, and the reason is more
+interesting than the code.
 
 ```bash
 python -m aqueduct.cli ask "Which product category made the most revenue?" --explain
@@ -16,70 +15,141 @@ python -m aqueduct.cli ask "Which product category made the most revenue?" --exp
 
 ---
 
-## Why this exists
+## The result
 
-This started from two teaching notebooks on agent design. Between them they build
-six different ways to turn a question into SQL — a ReAct tool-using agent, prompt
-chaining, parallel critics, an evaluator-optimizer loop, and an orchestrator with
-specialist workers.
+100 questions from [BIRD mini-dev](https://bird-bench.github.io/), 11 real
+databases, graded by execution accuracy — the generated query is run and its
+result set compared against the reference.
 
-They leave two things undone, and this project is those two things:
+| strategy | LLM calls | 3B gen EX | 7B gen EX |
+|---|---|---|---|
+| **`direct`** — one call | **1** | **29.0%** | **41.0%** |
+| `chain` — 5-stage pipeline | ~5 | 20.0% | 35.0% |
+| `orchestrator` — planner + specialists | ~6 | 16.0% | 32.0% |
+| `react` — tool-using agent | ~3 | 4.5%¹ | — |
 
-**1. Routing is never applied to Text-to-SQL.** The routing lesson routes customer
-support tickets. Every other pattern gets a SQL implementation; that one does not.
-Yet routing is exactly what a real system needs — `SELECT COUNT(*)` should not pay
-for a seven-call pipeline.
+¹ *At 3B the ReAct loop produces nothing on 14 of 22 questions — it cannot hold a
+multi-step plan. See the write-up below; its first reported score was a bug.*
 
-**2. Nothing is measured.** Six strategies, no evidence about which is better, at
-what cost, on which kind of question. So every design choice downstream is taste.
+**The single-call baseline wins at both model sizes, using five times less
+compute.** Every architecture that replaces one-shot generation with a pipeline
+does worse, and the more stages it has, the worse it does.
+
+The mechanism is the same in each case: **every stage inherits the previous
+stage's errors and has no way to detect them.** The orchestrator's synthesiser is
+instructed to follow its specialists' findings, so a wrong join key from one
+worker is faithfully written into the final query.
+
+41% on BIRD mini-dev is a credible 7B-class number — published results for models
+this size sit in the 25–45% band.
 
 ---
 
-## The crew
+## The retraction
 
-| Agent | Job | Spun up when |
+An earlier version of this README reported the gap between `direct` and the
+decomposed strategies as **41 points**, measured on a 22-question demo set.
+
+That number was inflated roughly 5× by the test set.
+
+| gap behind `direct` | 3B, demo set | 3B, BIRD | 7B, BIRD |
+|---|---|---|---|
+| `chain` | **40.9** | **9.0** | **6.0** |
+| `orchestrator` | **50.0** | **13.0** | **9.0** |
+
+Holding the model fixed and changing only the benchmark takes the gap from 40.9
+to 9.0. Changing the model then takes it from 9.0 to 6.0. **About 90% of the
+effect I originally attributed to model capability was my own easy test set.**
+
+In hindsight the mechanism is obvious: `direct` scored 90.9% on the demo set,
+leaving 41 points of room beneath it for a gap to occupy. At 29% there is not.
+
+The real conclusions are narrower and better supported:
+
+- the decomposition penalty on a real benchmark is **6–13 points**, not 41–50;
+- model scale narrows it by **3–4 points** — small, but consistent in sign across
+  two independent pipelines;
+- `direct` still wins at both sizes.
+
+Full history in [`docs/EXPERIMENTS.md`](docs/EXPERIMENTS.md), including the entry
+that made the original claim.
+
+---
+
+## What actually earned its keep
+
+Nothing that worked was an agent.
+
+**Execution feedback.** Run the query, read the database's error, rewrite. Costs
+nothing when the query succeeds, one call when it fails.
+
+| strategy | repair gain, 3B | repair gain, 7B |
 |---|---|---|
-| **Lead** | Reads the question, decides the headcount | always |
-| **Scout** | Finds which tables actually matter | wide schemas |
-| **Writer** | Writes the SQL | always |
-| **Specialists** | Joins, aggregation, filters | the query is hard enough to need them |
-| **Critics** | Review the query before it runs; vote | when correctness matters more than latency |
-| **Runner** | Executes it, safely | always |
-| **Fixer** | Rewrites using the reason it failed | something went wrong |
-| **Analyst** | Turns rows into an answer | the caller wants prose |
+| `direct` | +4.0 | +1.0 |
+| `chain` | **+10.0** | **+6.0** |
+| `orchestrator` | +2.0 | +3.0 |
 
-Underneath sits an **error memory**: verified corrections persist, so a mistake
-made once is less likely to be made again.
+It helps most exactly where generation is weakest — a pipeline emits more
+*executable but wrong* SQL, and execution feedback is the signal that catches it.
+This held in every phase, on both benchmarks, at both model sizes.
+
+**Model self-critique, by contrast, bought +0.0 for double the calls**, measured
+twice. Asked to review `SELECT dept FROM employees` having been told the column is
+`department`, a 3B model returned `schema_ok: true, confidence: 0.9`.
+
+**The schema card.** Foreign keys listed explicitly, plus sample values for
+categorical columns so the model can see that `status` holds `'shipped'` rather
+than guessing `'Shipped'` and silently returning zero rows.
+
+**Doing in code what does not need a model.** Column existence is a
+set-membership test. It runs in Python.
 
 ---
 
 ## Design decisions worth knowing about
 
-**Safety is enforced by a parser, not a prompt.** Generated SQL is parsed into an
-AST and rejected unless it is exactly one read statement, with no write or admin
-node anywhere in the tree. The source notebooks instead write *"NEVER run DELETE,
-DROP"* into the agent persona — a request a 3B model will eventually ignore. There
-are 16 adversarial cases in `tests/test_safety.py`, including a `DELETE` hidden
-inside a CTE.
+**Safety is enforced by a parser, not a prompt.** Generated SQL is parsed to an
+AST and rejected unless it is exactly one read statement with no write or admin
+node anywhere in the tree, then a row cap is injected. The source notebooks write
+*"NEVER run DELETE, DROP"* into the agent persona — a request, not a control.
+`tests/test_safety.py` holds 16 adversarial cases including a `DELETE` hidden
+inside a CTE and a comment-breakout attempt. All 500 BIRD reference queries pass
+the guard with zero false positives.
 
-**Checks that can be mechanical are mechanical.** Column existence is a
-set-membership test, so it runs in Python, not through a model. The notebooks ask
-the LLM for `schema_ok`; measured here, a 3B model shown a hallucinated column
-returned `schema_ok: true, confidence: 0.9`. The model is asked only what is
-genuinely semantic — wrong aggregate, wrong join, missing filter.
-
-**Feedback is ranked by reliability.** The database's `no such column: dept` is
-ground truth, costs nothing, and arrives before any model is consulted. Model
-critique is the secondary signal, for queries that run cleanly and answer the
-wrong question.
+**The mechanical schema check is parsed, not pattern-matched.** A regex version
+flagged output aliases, string literals, type names and function names as
+nonexistent columns — every one on a *correct* query, and each would have
+triggered a pointless repair.
 
 **The evaluation code is tested adversarially too.** The grader had two false-pass
-bugs before it had a single user — both attempts to make column order irrelevant
-scored genuinely different answers as equal. A metric that flatters itself
-corrupts every number downstream of it.
+bugs before it had a single user: both attempts to make column order irrelevant
+scored `(min=5, max=10)` and `(min=10, max=5)` as identical. It now compares
+positionally, exactly as BIRD's and Spider's official scripts do.
 
-Full reasoning, including the approaches that failed: [`docs/DECISIONS.md`](docs/DECISIONS.md).
-Dated results with before-and-after numbers: [`docs/EXPERIMENTS.md`](docs/EXPERIMENTS.md).
+**Generation is measured separately from rescue.** Each result records the
+strategy's raw draft graded *before* the repair layer touches it. Without that
+column, `react` scored 81.8% while generating one correct query in 22 — the
+repair layer was writing every query and the leaderboard was labelling it
+`react`.
+
+Full reasoning, including approaches that were tried and dropped:
+[`docs/DECISIONS.md`](docs/DECISIONS.md).
+
+---
+
+## What I would tell you in review
+
+Six instrumentation bugs were found over this project. Zero bugs were found in
+the agent logic.
+
+**The measuring apparatus was consistently less reliable than the thing being
+measured** — and every one of those bugs flattered the result. None was caught by
+reading the code more carefully; each was caught by measuring the same thing a
+second way.
+
+Two numbers reached a written conclusion before being caught: `react`'s 95.5%,
+which was the repair layer wearing another agent's name, and the 41-point gap
+above. Both looked entirely plausible.
 
 ---
 
@@ -91,25 +161,25 @@ python -m aqueduct.cli seed          # build the demo database
 python -m aqueduct.cli doctor        # check database + LLM backend
 ```
 
-Needs an OpenAI-compatible endpoint. Locally that is [Ollama](https://ollama.com):
+Needs any OpenAI-compatible endpoint. Locally that is [Ollama](https://ollama.com):
 
 ```bash
 ollama pull qwen2.5-coder:3b
 ```
-
-Then:
 
 ```bash
 python -m aqueduct.cli ask "Which department has the highest total salary spend?"
 ```
 
 ```bash
-python -m aqueduct.eval.runner       # score the crew on the demo question set
+python -m aqueduct.eval.compare      # strategy leaderboard on the demo set
+python -m aqueduct.eval.ablation     # repair signals, head to head
+python -m aqueduct.eval.routing      # verification tiers
 ```
 
-```bash
-python -m aqueduct.eval.ablation     # compare repair strategies head to head
-```
+The BIRD sweep runs on Kaggle — import
+[`kaggle/aqueduct_bird_kaggle.ipynb`](kaggle/aqueduct_bird_kaggle.ipynb), set
+**GPU T4 x2**, **Internet On**, **Persistence: Files only**, and Run All.
 
 ---
 
@@ -117,26 +187,41 @@ python -m aqueduct.eval.ablation     # compare repair strategies head to head
 
 | Tier | Hardware | Model | For |
 |---|---|---|---|
-| **Dev** | laptop, 4 GB VRAM | `qwen2.5-coder:3b` via Ollama | iteration, tests, UI |
-| **Eval** | Kaggle 2× T4 | `qwen2.5-coder:7b`+ via vLLM | benchmark sweeps |
+| **Dev** | laptop, 4 GB VRAM | `qwen2.5-coder:3b` | iteration, tests |
+| **Eval** | Kaggle 2× T4 | `qwen2.5-coder:7b` | benchmark sweeps |
 
-Ollama and vLLM both speak the OpenAI protocol, so the backend is a `base_url` in
-config. Nothing in `agents/` knows which tier it is on — which makes model size a
-measurable axis rather than a rewrite.
+Both speak the OpenAI protocol, so the backend is a `base_url` in config — nothing
+under `agents/` or `strategies/` knows which tier it is on. That is what makes
+model size a measurable axis rather than a rewrite, and it is why the control run
+above was cheap enough to bother with.
 
 ---
 
-## Status
+## Layout
 
-| Phase | | |
-|---|---|---|
-| 0 | Foundation — config, safety guard, demo database | done |
-| 1 | Writer + Runner, baseline measured | done |
-| 2 | Critics, Fixer, error memory | done |
-| 3 | Four generation strategies behind one interface | next |
-| 4 | The Lead — routing to strategy and model | |
-| 5 | Schema linking for wide databases | |
-| 6 | BIRD benchmark on Kaggle | |
-| 7 | FastAPI + Streamlit | |
+```
+src/aqueduct/
+├── db/           engine · introspect · safety (sqlglot AST guard) · seed
+├── llm/          one OpenAI-compatible client · disk cache · bounded types
+├── agents/       writer · critic · fixer · memory
+├── strategies/   direct · react · chain · parallel · eval_optimize · orchestrator
+├── router.py     verification tiering, decided from the parsed SQL
+├── eval/         BIRD loader · execution-accuracy grader · sweeps · leaderboards
+└── observability/ span tree behind the traces and the cost accounting
+```
+
+123 tests. `pytest`.
+
+---
+
+## Open question
+
+On **challenging** BIRD questions at 7B, `chain` beat `direct` — **30% vs 25%**.
+That is decomposition behaving as intended: hard problem, model capable enough for
+the extra structure to pay.
+
+It is also 6 questions against 5, out of 20. A hypothesis, not a finding. The full
+mini-dev has 102 challenging questions, which is the sample size that would settle
+it.
 
 Configuration lives in `.env` — see [`.env.example`](.env.example).

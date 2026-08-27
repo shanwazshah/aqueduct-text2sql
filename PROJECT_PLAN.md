@@ -1,8 +1,20 @@
 # Aqueduct — An Agentic Text-to-SQL System
 
-> Inspired by *Agents: Foundations & Planning* (class 1) and *Advanced Agent Concepts* (class 2).
-> Those notebooks build six ways to generate SQL. This project decides **which one to use, when** —
-> and proves the decision with numbers.
+> **Historical — the plan as written on 2026-08-25, before any measurement.**
+>
+> Kept unedited, because the distance between it and the outcome is part of the
+> record. The router described here as "the spine" was built, measured, and found
+> unnecessary. The multi-agent architectures it treats as the deliverable lose to
+> a single LLM call. The 41-point gap it was written to explain turned out to be
+> an artifact of the test set.
+>
+> For what the project actually found:
+> [README.md](README.md) · [docs/EXPERIMENTS.md](docs/EXPERIMENTS.md)
+
+Inspired by *Agents: Foundations & Planning* (class 1) and *Advanced Agent
+Concepts* (class 2). Those notebooks build six ways to generate SQL. This project
+set out to decide **which one to use, when** — and to prove the decision with
+numbers.
 
 ---
 
