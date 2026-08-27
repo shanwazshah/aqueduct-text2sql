@@ -74,7 +74,13 @@ def render_agents(container, trace: Trace) -> None:
 
         for span in spans:
             icon = STATUS_ICON.get(span.status, "•")
-            elapsed = f"{span.elapsed_ms / 1000:.1f}s"
+            # Sub-second spans are either a cache hit or the database, and
+            # both are real. Printing "0.0s" makes a working run look broken, so
+            # show milliseconds instead of rounding the truth away.
+            elapsed = (
+                f"{span.elapsed_ms:.0f}ms" if span.elapsed_ms < 1000
+                else f"{span.elapsed_ms / 1000:.1f}s"
+            )
             st.markdown(f"**{icon} {span.agent}** · {span.label}  \n`{elapsed}`")
 
             if span.status is Status.FAILED and "error" in span.detail:
@@ -91,30 +97,41 @@ def render_agents(container, trace: Trace) -> None:
                     st.caption(f"{key}: {value}")
 
 
-def run_live(crew: Crew, question: str, agents_slot, cost_slot) -> Answer:
+def run_live(crew: Crew, question: str, agents_slot, cost_slot,
+             explain: bool = False) -> Answer:
     """Run the crew on a worker thread, repainting the trace while it works."""
     trace = Trace(question)
     box: dict = {}
 
     def work():
         try:
-            box["answer"] = crew.ask(question, trace=trace)
+            box["answer"] = crew.ask(question, trace=trace, explain=explain)
         except Exception as e:  # surfaced in the UI rather than swallowed
             box["error"] = e
+
+    def paint_cost():
+        usage = crew.usage
+        parts = [f"{usage.calls} call{'s' if usage.calls != 1 else ''}"]
+        if usage.cached:
+            parts.append(f"{usage.cached} cached")
+        if usage.total_tokens:
+            parts.append(f"{usage.total_tokens} tokens")
+        parts.append(f"{usage.seconds:.1f}s")
+        cost_slot.caption(" · ".join(parts))
 
     thread = threading.Thread(target=work, daemon=True)
     thread.start()
 
     while thread.is_alive():
         render_agents(agents_slot, trace)
-        cost_slot.caption(
-            f"{crew.usage.calls} calls · {crew.usage.total_tokens} tokens · "
-            f"{crew.usage.seconds:.0f}s"
-        )
+        paint_cost()
         time.sleep(0.4)
 
     thread.join()
+    # Repaint after the join as well. A fully cached run finishes before the
+    # first poll, so without this the panel keeps the zeros it started with.
     render_agents(agents_slot, trace)
+    paint_cost()
 
     if "error" in box:
         raise box["error"]
@@ -155,7 +172,8 @@ with st.sidebar:
 
     st.divider()
     st.caption(f"**model** `{settings.model_sql}`")
-    st.caption(f"**database** `{settings.db_url.rsplit('/', 1)[-1]}`")
+    # Splitting on "/" alone leaves the whole Windows path on screen.
+    st.caption(f"**database** `{Path(settings.db_url.split('///')[-1]).name}`")
 
     with st.expander("Schema"):
         st.code(get_schema().render_compact(), language="text")
@@ -194,7 +212,7 @@ if question:
         crew = Crew(strategy=strategy, repair=repair, schema=get_schema(),
                     use_memory=False)
         try:
-            answer = run_live(crew, question, agents_slot, cost_slot)
+            answer = run_live(crew, question, agents_slot, cost_slot, explain=explain)
         except Exception as e:
             st.error(f"{type(e).__name__}: {e}")
             st.stop()
