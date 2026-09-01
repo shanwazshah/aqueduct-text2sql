@@ -63,6 +63,29 @@ def get_schema():
     return load_schema()
 
 
+def _looks_like_backend_down(error: Exception) -> bool:
+    """Is this 'the model server is not running' rather than a real failure?"""
+    text = str(error).lower()
+    return any(
+        phrase in text
+        for phrase in ("connection error", "connection refused", "failed to connect",
+                       "max retries", "cannot connect", "actively refused")
+    )
+
+
+def backend_is_up() -> bool:
+    """Cheap liveness probe, so the page can warn before a question is asked."""
+    import urllib.error
+    import urllib.request
+
+    root = settings.base_url.rsplit("/v1", 1)[0]
+    try:
+        urllib.request.urlopen(f"{root}/api/version", timeout=2)
+        return True
+    except Exception:
+        return False
+
+
 def render_agents(container, trace: Trace) -> None:
     """Draw the crew as it stands right now."""
     spans = [s for s in trace.root.walk() if s.agent != "crew"]
@@ -183,6 +206,15 @@ with st.sidebar:
 
 st.markdown("#### Ask the database a question")
 
+# Warn before a question is typed rather than after 13 seconds of waiting.
+if not backend_is_up():
+    st.warning(
+        f"The model server at `{settings.base_url}` is not responding. "
+        "Start it with `ollama serve`, then reload — questions will fail until "
+        "you do.",
+        icon="🔌",
+    )
+
 question = st.text_input(
     "question",
     placeholder="Which product category generated the most revenue?",
@@ -214,7 +246,20 @@ if question:
         try:
             answer = run_live(crew, question, agents_slot, cost_slot, explain=explain)
         except Exception as e:
-            st.error(f"{type(e).__name__}: {e}")
+            # "Connection error" is what the OpenAI client says when nothing is
+            # listening, which tells the reader nothing actionable. Ollama stops
+            # on its own — an auto-update restarts the service — so this is the
+            # most likely failure on this page and deserves the real answer.
+            if _looks_like_backend_down(e):
+                st.error(f"Can't reach the model server at `{settings.base_url}`.")
+                st.markdown(
+                    "**Ollama is not running.** Start it in a terminal:\n\n"
+                    "```\nollama serve\n```\n\n"
+                    "Then reload this page. Ollama stops itself after an "
+                    "auto-update, so this happens occasionally."
+                )
+            else:
+                st.error(f"{type(e).__name__}: {e}")
             st.stop()
 
         if answer.explanation:
