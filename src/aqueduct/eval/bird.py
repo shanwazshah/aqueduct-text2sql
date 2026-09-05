@@ -153,26 +153,58 @@ def stratified_sample(
     """
     if n >= len(questions):
         return list(questions)
+    if n <= 0:
+        return []
 
     rng = random.Random(seed)
     by_difficulty: dict[str, list[BirdQuestion]] = {}
     for question in questions:
         by_difficulty.setdefault(question.difficulty, []).append(question)
 
-    total = len(questions)
+    quotas = _apportion(n, {d: len(g) for d, g in by_difficulty.items()})
+
     chosen: list[BirdQuestion] = []
-
     for difficulty, group in sorted(by_difficulty.items()):
-        take = round(n * len(group) / total)
-        chosen.extend(rng.sample(group, min(take, len(group))))
-
-    # Rounding can leave the sample a question or two short or long.
-    if len(chosen) < n:
-        remaining = [q for q in questions if q not in set(chosen)]
-        chosen.extend(rng.sample(remaining, min(n - len(chosen), len(remaining))))
+        chosen.extend(rng.sample(group, quotas[difficulty]))
 
     chosen.sort(key=lambda q: q.question_id)
-    return chosen[:n]
+    return chosen
+
+
+def _apportion(n: int, sizes: dict[str, int]) -> dict[str, int]:
+    """Split `n` seats across strata proportionally, summing to exactly `n`.
+
+    Rounding each stratum independently does not sum to `n`. On mini-dev it
+    overshoots for 62 of the 499 possible sample sizes and undershoots for
+    another 62, and the old code patched the difference afterwards: topping up
+    from the whole pool, which ignores strata, or truncating the id-sorted list,
+    which deterministically dropped questions from whichever database sorts last
+    (BIRD ids are contiguous per database, so that is never a random drop).
+    Either way the sample no longer had the mix this function promises.
+
+    Largest remainder gives every stratum its floor and then hands the leftover
+    seats to the largest fractional parts. It sums to `n` by construction, so
+    there is nothing to patch afterwards.
+
+    For the sizes this project actually sweeps - 100 and 150 - it selects the
+    identical questions the previous implementation did, so results already
+    published stay reproducible.
+    """
+    total = sum(sizes.values())
+    exact = {stratum: n * size / total for stratum, size in sizes.items()}
+    quotas = {stratum: int(value) for stratum, value in exact.items()}
+
+    # Ties broken by stratum name, so the apportionment is deterministic.
+    order = sorted(sizes, key=lambda d: (-(exact[d] - int(exact[d])), d))
+    leftover = n - sum(quotas.values())
+    for stratum in order:
+        if leftover <= 0:
+            break
+        if quotas[stratum] < sizes[stratum]:
+            quotas[stratum] += 1
+            leftover -= 1
+
+    return quotas
 
 
 def describe(questions: list[BirdQuestion]) -> str:
