@@ -163,6 +163,30 @@ flatters itself is worth nothing in review.
 
 Both false-pass cases are pinned in `tests/test_metrics.py`.
 
+**Amended 2026-09-05 (Phase 7).** Two corrections to this entry. Neither was
+found by the code changing under it; both were found by reading the code against
+what this entry claimed it did.
+
+*Row order.* "Relaxed only when neither query has an `ORDER BY`" was the
+intention. The code ANDed the two conditions, which means a prediction could opt
+out of the ordering check by simply not sorting — a reference sorting by salary
+and a prediction with no sort at all returned the same rows in a different order
+and scored `match`. A third false pass in the component whose entire job is to
+not have any, and again in the flattering direction.
+
+Order-sensitivity is now decided by the reference alone, which is what this entry
+meant and what the published evaluations do: the reference is what states whether
+sequence is part of the answer. A prediction that sorts when the reference does
+not is still correct and is not punished for it. Both directions are pinned by
+tests, and the regression test fails against the old rule.
+
+*Float tolerance.* "Compared to a tolerance of 1e-6" is not what the code does.
+It rounds to six decimal places, which is boundary-sensitive rather than a
+tolerance: `0.4999995` and `0.5000004` are 9e-7 apart and compare unequal. The
+behaviour is kept — it errs strict, which is the safe direction — but the
+description was wrong, and the unused `FLOAT_TOLERANCE` constant that implied
+otherwise is removed.
+
 ---
 
 ### D7 — The first crew is two agents, on purpose

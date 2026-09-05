@@ -1,12 +1,17 @@
 """Evaluation questions for the demo database.
 
-Twelve questions with reference SQL, graded by comparing result sets rather than
-query text — there are many correct ways to write the same query, and string
+Twenty-two questions with reference SQL, graded by comparing result sets rather
+than query text — there are many correct ways to write the same query, and string
 comparison would fail all but one of them.
 
+Twelve came first, as the Phase 1 baseline; ten harder ones were added in Phase 3
+when the easy set stopped separating the strategies. `ALL_QUESTIONS` is both, and
+is what every sweep runs.
+
 The `trap` field records which deliberate schema hazard each question probes.
-That is the useful part: when a strategy scores 8/12, the traps tell you *which*
-kind of mistake it is still making, which is what decides what to build next.
+That is the useful part: when a strategy scores 8 out of 22, the traps tell you
+*which* kind of mistake it is still making, which is what decides what to build
+next.
 
 This is the fast feedback loop. BIRD is the real benchmark, but it needs the
 Kaggle tier; this runs on a laptop in a couple of minutes.

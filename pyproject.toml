@@ -22,7 +22,6 @@ dependencies = [
 
 [project.optional-dependencies]
 ui = ["streamlit>=1.30"]
-eval = ["datasets>=2.0"]    # BIRD mini-dev loader
 dev = ["pytest>=8.0", "pytest-asyncio>=0.23"]
 
 [project.scripts]
@@ -31,6 +30,5 @@ aqueduct = "aqueduct.cli:app"
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.pytest.ini_options]
-pythonpath = ["src"]
-testpaths = ["tests"]
+# pytest is configured in pytest.ini, not here. Both files existed and only
+# pytest.ini was ever read, so the block here was inert and free to drift.

@@ -25,7 +25,6 @@ from dataclasses import dataclass
 
 from ..db.engine import QueryResult, run_query
 
-FLOAT_TOLERANCE = 1e-6
 
 
 @dataclass
