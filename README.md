@@ -13,6 +13,8 @@ interesting than the code.
 python -m aqueduct.cli ask "Which product category made the most revenue?" --explain
 ```
 
+*(That needs the install and a local model first — see [Running it](#running-it).)*
+
 ---
 
 ## The result
@@ -26,10 +28,14 @@ result set compared against the reference.
 | **`direct`** — one call | **1** | **29.0%** | **41.0%** |
 | `chain` — 5-stage pipeline | ~5 | 20.0% | 35.0% |
 | `orchestrator` — planner + specialists | ~6 | 16.0% | 32.0% |
-| `react` — tool-using agent | ~3 | 4.5%¹ | — |
 
-¹ *At 3B the ReAct loop produces nothing on 14 of 22 questions — it cannot hold a
-multi-step plan. See the write-up below; its first reported score was a bug.*
+These three are the strategies that were run on BIRD. `react`, `parallel` and
+`eval_optimize` were not, and no number is borrowed for them here — mixing a
+demo-set score into a BIRD table is the mistake this project already retracted
+once, and it is not worth repeating for a tidier table. Their demo-set results
+are in [`docs/EXPERIMENTS.md`](docs/EXPERIMENTS.md); the short version is that
+`react` generated one correct query in twenty-two at 3B, making no tool call at
+all on 14 of them, because a 3B model cannot hold a multi-step plan.
 
 **The single-call baseline wins at both model sizes, using five times less
 compute.** Every architecture that replaces one-shot generation with a pipeline
@@ -147,9 +153,10 @@ measured** — and every one of those bugs flattered the result. None was caught
 reading the code more carefully; each was caught by measuring the same thing a
 second way.
 
-Two numbers reached a written conclusion before being caught: `react`'s 95.5%,
-which was the repair layer wearing another agent's name, and the 41-point gap
-above. Both looked entirely plausible.
+Two numbers reached a written conclusion before being caught. The first was
+`react`'s original 95.5%: before the tool-call bug was found it generated nothing
+at all, and the repair layer wrote every query under its name. The second was the
+41-point gap above. Both looked entirely plausible.
 
 ---
 
@@ -210,7 +217,7 @@ src/aqueduct/
 └── observability/ span tree behind the traces and the cost accounting
 ```
 
-123 tests. `pytest`.
+188 tests. `pytest`.
 
 ---
 

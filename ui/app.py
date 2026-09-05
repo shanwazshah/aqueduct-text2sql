@@ -38,15 +38,26 @@ from aqueduct.strategies import STRATEGIES                # noqa: E402
 
 st.set_page_config(page_title="Aqueduct", page_icon="🚰", layout="wide")
 
-# Measured on BIRD mini-dev, 100 questions. Shown in the picker so the cost of
-# each strategy is visible at the moment it is chosen, not afterwards.
+# Shown in the picker so the cost of each strategy is visible at the moment it is
+# chosen, not afterwards.
+#
+# These are two different measurements and they are kept apart deliberately.
+# Presenting a demo-set number under a BIRD label is the mistake this project
+# already retracted once, and a sidebar is exactly where it would slip back in.
+#
+#   bird_ex     gen EX on BIRD mini-dev, 100 questions, 7B. Only `direct`,
+#               `chain` and `orchestrator` were ever run there; the rest show a
+#               dash rather than a borrowed score.
+#   demo_calls  mean LLM calls per question on the 22-question demo set at 3B,
+#               which is where every strategy has been run. A cost figure, not a
+#               score - and demo-set cost, not BIRD cost.
 BENCHMARK = {
-    "direct":        {"ex": 41.0, "calls": 1.0, "note": "the baseline that wins"},
-    "chain":         {"ex": 35.0, "calls": 4.5, "note": "5-stage pipeline"},
-    "orchestrator":  {"ex": 32.0, "calls": 5.8, "note": "planner + specialists"},
-    "parallel":      {"ex": None, "calls": 3.7, "note": "critics vote"},
-    "eval_optimize": {"ex": None, "calls": 5.3, "note": "grade and revise"},
-    "react":         {"ex": None, "calls": 2.5, "note": "tool-using agent"},
+    "direct":        {"bird_ex": 41.0, "demo_calls": 1.0, "note": "the baseline that wins"},
+    "chain":         {"bird_ex": 35.0, "demo_calls": 4.5, "note": "5-stage pipeline"},
+    "orchestrator":  {"bird_ex": 32.0, "demo_calls": 5.8, "note": "planner + specialists"},
+    "parallel":      {"bird_ex": None, "demo_calls": 3.7, "note": "critics vote"},
+    "eval_optimize": {"bird_ex": None, "demo_calls": 5.3, "note": "grade and revise"},
+    "react":         {"bird_ex": None, "demo_calls": 2.5, "note": "tool-using agent"},
 }
 
 STATUS_ICON = {
@@ -175,8 +186,10 @@ with st.sidebar:
 
     info = BENCHMARK[strategy]
     left, right = st.columns(2)
-    left.metric("BIRD EX", f"{info['ex']:.0f}%" if info["ex"] else "—")
-    right.metric("calls/question", f"{info['calls']:.1f}")
+    left.metric("BIRD gen EX", f"{info['bird_ex']:.0f}%" if info["bird_ex"] else "—")
+    right.metric("calls/q (demo set)", f"{info['demo_calls']:.1f}")
+    if info["bird_ex"] is None:
+        st.caption("Not run on BIRD - no score to show.")
 
     repair = st.select_slider(
         "Repair",
