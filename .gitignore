@@ -7,9 +7,15 @@ venv/
 data/db/*.db
 data/cache/
 data/raw/
+data/memory.json
 .streamlit/secrets.toml
 *.egg-info/
 *.log
-data/comparison.json
 aqueduct-src.zip
-data/bird/
+
+# BIRD. The questions file and the 346 MB of databases are third-party data and
+# are downloaded, not committed - see kaggle/README.md. The results files are
+# this project's own output and are the evidence behind every number in the
+# README, so they are tracked: a claim nobody can check is not a result.
+data/bird/*
+!data/bird/*results*.json
