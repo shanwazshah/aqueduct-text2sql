@@ -1,0 +1,2340 @@
+[
+  {
+    "strategy": "direct",
+    "question_id": "q01",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  COUNT(*)\nFROM employees\nLIMIT 500",
+    "calls": 1,
+    "seconds": 0.015871699986746535,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT COUNT(*) FROM employees",
+    "draft_correct": true
+  },
+  {
+    "strategy": "direct",
+    "question_id": "q02",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  departments.name,\n  departments.city\nFROM departments\nLIMIT 500",
+    "calls": 1,
+    "seconds": 0.0056087999837473035,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT departments.name, departments.city FROM departments",
+    "draft_correct": true
+  },
+  {
+    "strategy": "direct",
+    "question_id": "q03",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  AVG(e.salary)\nFROM employees AS e\nJOIN departments AS d\n  ON e.department_id = d.id\nWHERE\n  d.name = 'Engineering'\nLIMIT 500",
+    "calls": 1,
+    "seconds": 0.03974410000955686,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT AVG(e.salary) \nFROM employees e \nJOIN departments d ON e.department_id = d.id \nWHERE d.name = 'Engineering'",
+    "draft_correct": true
+  },
+  {
+    "strategy": "direct",
+    "question_id": "q04",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name,\n  COUNT(e.id) AS employee_count\nFROM departments AS d\nLEFT JOIN employees AS e\n  ON d.id = e.department_id\nGROUP BY\n  d.name\nLIMIT 500",
+    "calls": 1,
+    "seconds": 0.01158920000307262,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT d.name, COUNT(e.id) AS employee_count\nFROM departments d\nLEFT JOIN employees e ON d.id = e.department_id\nGROUP BY d.name",
+    "draft_correct": true
+  },
+  {
+    "strategy": "direct",
+    "question_id": "q05",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  e.name\nFROM employees AS e\nLEFT JOIN departments AS d\n  ON e.department_id = d.id\nWHERE\n  d.id IS NULL\nLIMIT 500",
+    "calls": 1,
+    "seconds": 0.009106699988478795,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT e.name FROM employees e LEFT JOIN departments d ON e.department_id = d.id WHERE d.id IS NULL",
+    "draft_correct": true
+  },
+  {
+    "strategy": "direct",
+    "question_id": "q06",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  SUM(amount) AS total_value\nFROM orders\nWHERE\n  status = 'shipped'\nLIMIT 500",
+    "calls": 1,
+    "seconds": 0.006117599987192079,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT SUM(amount) AS total_value FROM orders WHERE status = 'shipped'",
+    "draft_correct": true
+  },
+  {
+    "strategy": "direct",
+    "question_id": "q07",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  p.category,\n  SUM(oi.quantity * oi.price) AS total_revenue\nFROM order_items AS oi\nJOIN products AS p\n  ON oi.product_id = p.id\nGROUP BY\n  p.category\nORDER BY\n  total_revenue DESC\nLIMIT 1",
+    "calls": 1,
+    "seconds": 0.009662600001320243,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT p.category, SUM(oi.quantity * oi.price) AS total_revenue\nFROM order_items oi\nJOIN products p ON oi.product_id = p.id\nGROUP BY p.category\nORDER BY total_revenue DESC\nLIMIT 1;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "direct",
+    "question_id": "q08",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  e.name AS employee_name,\n  m.name AS manager_name\nFROM employees AS e\nLEFT JOIN employees AS m\n  ON e.manager_id = m.id\nLIMIT 500",
+    "calls": 1,
+    "seconds": 0.010457500000484288,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT e.name AS employee_name, m.name AS manager_name\nFROM employees e\nLEFT JOIN employees m ON e.manager_id = m.id;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "direct",
+    "question_id": "q09",
+    "correct": false,
+    "reason": "same row count, different values",
+    "sql": "SELECT\n  e.name,\n  e.salary\nFROM employees AS e\nWHERE\n  e.salary > (\n    SELECT\n      AVG(salary)\n    FROM employees\n  )\nLIMIT 500",
+    "calls": 1,
+    "seconds": 0.010168599983444437,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT e.name, e.salary\nFROM employees e\nWHERE e.salary > (SELECT AVG(salary) FROM employees)",
+    "draft_correct": false
+  },
+  {
+    "strategy": "direct",
+    "question_id": "q10",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  e.name,\n  COUNT(o.id) AS order_count\nFROM employees AS e\nLEFT JOIN orders AS o\n  ON e.id = o.employee_id\nWHERE\n  e.department_id = (\n    SELECT\n      id\n    FROM departments\n    WHERE\n      name = 'Sales'\n  )\nGROUP BY\n  e.name\nLIMIT 500",
+    "calls": 1,
+    "seconds": 0.012880299997050315,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT e.name, COUNT(o.id) AS order_count\nFROM employees e\nLEFT JOIN orders o ON e.id = o.employee_id\nWHERE e.department_id = (SELECT id FROM departments WHERE name = 'Sales')\nGROUP BY e.name;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "direct",
+    "question_id": "q11",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name,\n  SUM(e.salary) AS total_salary\nFROM employees AS e\nLEFT JOIN departments AS d\n  ON e.department_id = d.id\nGROUP BY\n  d.name\nORDER BY\n  total_salary DESC\nLIMIT 1",
+    "calls": 1,
+    "seconds": 0.011211100005311891,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT d.name, SUM(e.salary) AS total_salary\nFROM employees e\nLEFT JOIN departments d ON e.department_id = d.id\nGROUP BY d.name\nORDER BY total_salary DESC\nLIMIT 1;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "direct",
+    "question_id": "q12",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  COUNT(*)\nFROM employees\nWHERE\n  hired_on >= '2021-01-01'\nLIMIT 500",
+    "calls": 1,
+    "seconds": 0.006706699990900233,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT COUNT(*) FROM employees WHERE hired_on >= '2021-01-01';",
+    "draft_correct": true
+  },
+  {
+    "strategy": "direct",
+    "question_id": "h01",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name,\n  e.name\nFROM departments AS d\nLEFT JOIN employees AS e\n  ON d.id = e.department_id\nWHERE\n  e.salary = (\n    SELECT\n      MAX(salary)\n    FROM employees\n    WHERE\n      department_id = d.id\n  )\nGROUP BY\n  d.name,\n  e.name\nLIMIT 500",
+    "calls": 1,
+    "seconds": 0.013443400006508455,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT d.name, e.name\nFROM departments d\nLEFT JOIN employees e ON d.id = e.department_id\nWHERE e.salary = (SELECT MAX(salary) FROM employees WHERE department_id = d.id)\nGROUP BY d.name, e.name;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "direct",
+    "question_id": "h02",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  e.name\nFROM employees AS e\nLEFT JOIN orders AS o\n  ON e.id = o.employee_id\nWHERE\n  o.id IS NULL\nLIMIT 500",
+    "calls": 2,
+    "seconds": 0.010813900007633492,
+    "agents": [
+      "writer",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "SELECT e.name FROM employees e\nLEFT JOIN order_items oi ON e.id = oi.employee_id\nWHERE oi.id IS NULL",
+    "draft_correct": false
+  },
+  {
+    "strategy": "direct",
+    "question_id": "h03",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  CAST(SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*)\nFROM orders\nLIMIT 500",
+    "calls": 1,
+    "seconds": 0.009077099995920435,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT CAST(SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*) FROM orders",
+    "draft_correct": true
+  },
+  {
+    "strategy": "direct",
+    "question_id": "h04",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name AS department_name,\n  SUM(oi.price * oi.quantity) AS total_revenue\nFROM order_items AS oi\nJOIN orders AS o\n  ON oi.order_id = o.id\nJOIN employees AS e\n  ON o.employee_id = e.id\nJOIN departments AS d\n  ON e.department_id = d.id\nWHERE\n  d.name = 'Sales'\nGROUP BY\n  d.name\nLIMIT 500",
+    "calls": 1,
+    "seconds": 0.01569770000060089,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT d.name AS department_name, SUM(oi.price * oi.quantity) AS total_revenue\nFROM order_items oi\nJOIN orders o ON oi.order_id = o.id\nJOIN employees e ON o.employee_id = e.id\nJOIN departments d ON e.department_id = d.id\nWHERE d.name = 'Sales'\nGROUP BY d.name;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "direct",
+    "question_id": "h05",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  e.name,\n  COUNT(e2.id) AS report_count\nFROM employees AS e\nLEFT JOIN employees AS e2\n  ON e.id = e2.manager_id\nGROUP BY\n  e.id\nORDER BY\n  report_count DESC\nLIMIT 1",
+    "calls": 1,
+    "seconds": 0.010126400011358783,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT e.name, COUNT(e2.id) AS report_count\nFROM employees e\nLEFT JOIN employees e2 ON e.id = e2.manager_id\nGROUP BY e.id\nORDER BY report_count DESC\nLIMIT 1;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "direct",
+    "question_id": "h06",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  p.name,\n  COUNT(DISTINCT o.customer) AS distinct_customers\nFROM products AS p\nLEFT JOIN order_items AS oi\n  ON p.id = oi.product_id\nLEFT JOIN orders AS o\n  ON oi.order_id = o.id\nGROUP BY\n  p.name\nLIMIT 500",
+    "calls": 1,
+    "seconds": 0.013416500005405396,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT p.name, COUNT(DISTINCT o.customer) AS distinct_customers\nFROM products p\nLEFT JOIN order_items oi ON p.id = oi.product_id\nLEFT JOIN orders o ON oi.order_id = o.id\nGROUP BY p.name;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "direct",
+    "question_id": "h07",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name\nFROM departments AS d\nLEFT JOIN employees AS e\n  ON d.id = e.department_id\nGROUP BY\n  d.name\nHAVING\n  AVG(e.salary) > (\n    SELECT\n      AVG(salary)\n    FROM employees\n  )\nLIMIT 500",
+    "calls": 1,
+    "seconds": 0.013399199990089983,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT d.name\nFROM departments d\nLEFT JOIN employees e ON d.id = e.department_id\nGROUP BY d.name\nHAVING AVG(e.salary) > (SELECT AVG(salary) FROM employees);",
+    "draft_correct": true
+  },
+  {
+    "strategy": "direct",
+    "question_id": "h08",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  o.id,\n  o.amount,\n  SUM(oi.quantity * oi.price) AS total_line_items\nFROM orders AS o\nLEFT JOIN order_items AS oi\n  ON o.id = oi.order_id\nGROUP BY\n  o.id,\n  o.amount\nLIMIT 500",
+    "calls": 1,
+    "seconds": 0.01242630000342615,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT o.id, o.amount, SUM(oi.quantity * oi.price) AS total_line_items\nFROM orders o\nLEFT JOIN order_items oi ON o.id = oi.order_id\nGROUP BY o.id, o.amount;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "direct",
+    "question_id": "h09",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  COUNT(*)\nFROM orders\nWHERE\n  STRFTIME('%Y-%m', ordered_on) BETWEEN '2024-01' AND '2024-03'\nLIMIT 500",
+    "calls": 1,
+    "seconds": 0.00719030000618659,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT COUNT(*) FROM orders WHERE strftime('%Y-%m', ordered_on) BETWEEN '2024-01' AND '2024-03'",
+    "draft_correct": true
+  },
+  {
+    "strategy": "direct",
+    "question_id": "h10",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  p.category,\n  SUM(oi.quantity * oi.price) AS total_revenue\nFROM order_items AS oi\nJOIN orders AS o\n  ON oi.order_id = o.id\nJOIN products AS p\n  ON oi.product_id = p.id\nWHERE\n  o.status = 'shipped'\nGROUP BY\n  p.category\nORDER BY\n  total_revenue DESC\nLIMIT 1",
+    "calls": 1,
+    "seconds": 0.012746899999910966,
+    "agents": [
+      "writer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT p.category, SUM(oi.quantity * oi.price) AS total_revenue\nFROM order_items oi\nJOIN orders o ON oi.order_id = o.id\nJOIN products p ON oi.product_id = p.id\nWHERE o.status = 'shipped'\nGROUP BY p.category\nORDER BY total_revenue DESC\nLIMIT 1;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "react",
+    "question_id": "q01",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  COUNT(*)\nFROM employees\nLIMIT 500",
+    "calls": 1,
+    "seconds": 5.489152499998454,
+    "agents": [
+      "react-agent",
+      "run_sql",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT COUNT(*) FROM employees",
+    "draft_correct": true
+  },
+  {
+    "strategy": "react",
+    "question_id": "q02",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  departments.name,\n  departments.city\nFROM departments\nLIMIT 500",
+    "calls": 2,
+    "seconds": 3.0540293999947608,
+    "agents": [
+      "react-agent",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "q03",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  AVG(salary)\nFROM employees\nWHERE\n  department_id = (\n    SELECT\n      id\n    FROM departments\n    WHERE\n      name = 'Engineering'\n  )\nLIMIT 500",
+    "calls": 1,
+    "seconds": 547.6086376999738,
+    "agents": [
+      "react-agent",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "q04",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name,\n  COUNT(e.id) AS employee_count\nFROM departments AS d\nLEFT JOIN employees AS e\n  ON d.id = e.department_id\nGROUP BY\n  d.name\nLIMIT 500",
+    "calls": 2,
+    "seconds": 7.7545049999898765,
+    "agents": [
+      "react-agent",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "q05",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  name\nFROM employees\nWHERE\n  department_id IS NULL\nLIMIT 500",
+    "calls": 3,
+    "seconds": 12.55798360001063,
+    "agents": [
+      "react-agent",
+      "list_tables",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "q06",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  SUM(amount) AS total_value\nFROM orders\nWHERE\n  status = 'shipped'\nLIMIT 500",
+    "calls": 3,
+    "seconds": 11.381949299975531,
+    "agents": [
+      "react-agent",
+      "run_sql",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "SELECT SUM(total) AS total_value FROM orders WHERE shipped = 1",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "q07",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  p.category,\n  SUM(oi.quantity * oi.price) AS total_revenue\nFROM order_items AS oi\nJOIN products AS p\n  ON oi.product_id = p.id\nGROUP BY\n  p.category\nORDER BY\n  total_revenue DESC\nLIMIT 1",
+    "calls": 2,
+    "seconds": 8.449534200015478,
+    "agents": [
+      "react-agent",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "q08",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  e.name,\n  m.name\nFROM employees AS e\nLEFT JOIN employees AS m\n  ON e.manager_id = m.id\nLIMIT 500",
+    "calls": 3,
+    "seconds": 13.45370980000007,
+    "agents": [
+      "react-agent",
+      "list_tables",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "q09",
+    "correct": false,
+    "reason": "same row count, different values",
+    "sql": "SELECT\n  name,\n  salary\nFROM employees\nWHERE\n  salary > (\n    SELECT\n      AVG(salary)\n    FROM employees\n  )\nORDER BY\n  salary DESC\nLIMIT 500",
+    "calls": 3,
+    "seconds": 12.86425529999542,
+    "agents": [
+      "react-agent",
+      "list_tables",
+      "get_table_schema",
+      "run_sql",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT name, salary FROM employees WHERE salary > (SELECT AVG(salary) FROM employees) ORDER BY salary DESC",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "q10",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  e.name,\n  COUNT(o.id) AS order_count\nFROM employees AS e\nJOIN orders AS o\n  ON e.id = o.employee_id\nGROUP BY\n  e.name\nLIMIT 500",
+    "calls": 2,
+    "seconds": 7.308174100005999,
+    "agents": [
+      "react-agent",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "q11",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name,\n  SUM(e.salary) AS total_salary\nFROM employees AS e\nJOIN departments AS d\n  ON e.department_id = d.id\nGROUP BY\n  d.name\nORDER BY\n  total_salary DESC\nLIMIT 1",
+    "calls": 3,
+    "seconds": 18.713162599975476,
+    "agents": [
+      "react-agent",
+      "list_tables",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "q12",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  COUNT(*)\nFROM employees\nWHERE\n  hired_on >= '2021-01-01'\nLIMIT 500",
+    "calls": 2,
+    "seconds": 551.6278434999986,
+    "agents": [
+      "react-agent",
+      "run_sql",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "SELECT COUNT(*) FROM employees WHERE hire_date >= '2021-01-01'",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "h01",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name AS department,\n  e.name AS employee_name\nFROM departments AS d\nJOIN employees AS e\n  ON d.id = e.department_id\nWHERE\n  e.salary = (\n    SELECT\n      MAX(salary)\n    FROM employees\n    WHERE\n      department_id = d.id\n  )\nLIMIT 500",
+    "calls": 2,
+    "seconds": 8.47930649999762,
+    "agents": [
+      "react-agent",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "h02",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  e.name\nFROM employees AS e\nWHERE\n  NOT e.id IN (\n    SELECT\n      employee_id\n    FROM orders\n  )\nLIMIT 500",
+    "calls": 3,
+    "seconds": 21.54396139999153,
+    "agents": [
+      "react-agent",
+      "list_tables",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "h03",
+    "correct": false,
+    "reason": "same row count, different values",
+    "sql": "SELECT\n  COUNT(*) AS total_orders,\n  COUNT(CASE WHEN status = 'cancelled' THEN 1 ELSE NULL END) AS cancelled_orders\nFROM orders\nLIMIT 500",
+    "calls": 1,
+    "seconds": 6.5704919999989215,
+    "agents": [
+      "react-agent",
+      "run_sql",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT COUNT(*) AS total_orders, COUNT(CASE WHEN status = 'cancelled' THEN 1 ELSE NULL END) AS cancelled_orders FROM orders",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "h04",
+    "correct": false,
+    "reason": "query failed: no such column: oi.employee_id",
+    "sql": "SELECT d.name AS department, SUM(oi.price * oi.quantity) AS total_revenue FROM order_items oi JOIN employees e ON oi.employee_id = e.id JOIN departments d ON e.department_id = d.id GROUP BY d.name",
+    "calls": 5,
+    "seconds": 18.898263699986273,
+    "agents": [
+      "react-agent",
+      "run_sql",
+      "list_tables",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "SELECT department, SUM(price * quantity) AS total_revenue FROM order_items JOIN salespeople ON order_items.salesperson_id = salespeople.id GROUP BY department",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "h05",
+    "correct": false,
+    "reason": "same row count, different values",
+    "sql": "SELECT\n  manager_id,\n  COUNT(*) AS direct_reports\nFROM employees\nGROUP BY\n  manager_id\nORDER BY\n  direct_reports DESC\nLIMIT 1",
+    "calls": 3,
+    "seconds": 13.331306199979736,
+    "agents": [
+      "react-agent",
+      "list_tables",
+      "get_table_schema",
+      "run_sql",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT manager_id, COUNT(*) AS direct_reports FROM employees GROUP BY manager_id ORDER BY direct_reports DESC LIMIT 1",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "h06",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  p.name,\n  COUNT(DISTINCT o.customer) AS distinct_customers\nFROM products AS p\nJOIN order_items AS oi\n  ON p.id = oi.product_id\nJOIN orders AS o\n  ON oi.order_id = o.id\nGROUP BY\n  p.name\nLIMIT 500",
+    "calls": 2,
+    "seconds": 3.566613300004974,
+    "agents": [
+      "react-agent",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "h07",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name\nFROM departments AS d\nJOIN employees AS e\n  ON d.id = e.department_id\nGROUP BY\n  d.name\nHAVING\n  AVG(e.salary) > (\n    SELECT\n      AVG(salary)\n    FROM employees\n  )\nLIMIT 500",
+    "calls": 3,
+    "seconds": 24.924310300004436,
+    "agents": [
+      "react-agent",
+      "list_tables",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "h08",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  o.id AS order_id,\n  o.amount AS recorded_order_amount,\n  SUM(li.price * li.quantity) AS total_line_items\nFROM orders AS o\nJOIN order_items AS li\n  ON o.id = li.order_id\nGROUP BY\n  o.id\nLIMIT 500",
+    "calls": 3,
+    "seconds": 19.20652340000379,
+    "agents": [
+      "react-agent",
+      "run_sql",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "SELECT o.order_id, o.recorded_order_amount, SUM(li.amount) AS total_line_items FROM orders o JOIN order_items li ON o.order_id = li.order_id GROUP BY o.order_id",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "h09",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  COUNT(*)\nFROM orders\nWHERE\n  ordered_on BETWEEN '2024-01-01' AND '2024-03-31'\nLIMIT 500",
+    "calls": 2,
+    "seconds": 3.7348752999969292,
+    "agents": [
+      "react-agent",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "",
+    "draft_correct": false
+  },
+  {
+    "strategy": "react",
+    "question_id": "h10",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  p.category,\n  SUM(oi.quantity * oi.price) AS total_revenue\nFROM order_items AS oi\nJOIN orders AS o\n  ON oi.order_id = o.id\nJOIN products AS p\n  ON oi.product_id = p.id\nWHERE\n  o.status = 'shipped'\nGROUP BY\n  p.category\nORDER BY\n  total_revenue DESC\nLIMIT 1",
+    "calls": 3,
+    "seconds": 24.092891399981454,
+    "agents": [
+      "react-agent",
+      "list_tables",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "",
+    "draft_correct": false
+  },
+  {
+    "strategy": "chain",
+    "question_id": "q01",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  COUNT(*)\nFROM employees\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.04640580000705086,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT COUNT(*) FROM employees",
+    "draft_correct": true
+  },
+  {
+    "strategy": "chain",
+    "question_id": "q02",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  departments.name AS department_name,\n  departments.city\nFROM departments\nGROUP BY\n  departments.name,\n  departments.city\nLIMIT 500",
+    "calls": 5,
+    "seconds": 0.014746199973160401,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "SELECT department_name, city FROM departments GROUP BY department_name, city",
+    "draft_correct": false
+  },
+  {
+    "strategy": "chain",
+    "question_id": "q03",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  AVG(salary)\nFROM employees AS T1\nINNER JOIN departments AS T2\n  ON T1.department_id = T2.id\nWHERE\n  T2.name = 'Engineering'\nGROUP BY\n  T2.name\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.018342900002608076,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT AVG(salary) FROM employees AS T1 INNER JOIN departments AS T2 ON T1.department_id = T2.id WHERE T2.name = 'Engineering' GROUP BY T2.name",
+    "draft_correct": true
+  },
+  {
+    "strategy": "chain",
+    "question_id": "q04",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  departments.name,\n  COUNT(employees.id) AS employee_count\nFROM departments\nLEFT JOIN employees\n  ON departments.id = employees.department_id\nGROUP BY\n  departments.name\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.015960799995809793,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT departments.name, COUNT(employees.id) AS employee_count FROM departments LEFT JOIN employees ON departments.id = employees.department_id GROUP BY departments.name",
+    "draft_correct": true
+  },
+  {
+    "strategy": "chain",
+    "question_id": "q05",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  name\nFROM employees\nWHERE\n  department_id IS NULL\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.01395240001147613,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT name FROM employees WHERE department_id IS NULL",
+    "draft_correct": true
+  },
+  {
+    "strategy": "chain",
+    "question_id": "q06",
+    "correct": false,
+    "reason": "same row count, different values",
+    "sql": "SELECT\n  SUM(T1.price * T1.quantity)\nFROM order_items AS T1\nINNER JOIN orders AS T2\n  ON T1.order_id = T2.id\nWHERE\n  T2.status = 'shipped'\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.013934299990069121,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT SUM(T1.price * T1.quantity) FROM order_items AS T1 INNER JOIN orders AS T2 ON T1.order_id = T2.id WHERE T2.status = 'shipped'",
+    "draft_correct": false
+  },
+  {
+    "strategy": "chain",
+    "question_id": "q07",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  T2.category,\n  SUM(T1.quantity * T1.price) AS revenue\nFROM order_items AS T1\nINNER JOIN products AS T2\n  ON T1.product_id = T2.id\nGROUP BY\n  T2.category\nORDER BY\n  revenue DESC\nLIMIT 1",
+    "calls": 4,
+    "seconds": 0.01468409999506548,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT T2.category, SUM(T1.quantity * T1.price) AS revenue FROM order_items AS T1 INNER JOIN products AS T2 ON T1.product_id = T2.id GROUP BY T2.category ORDER BY revenue DESC LIMIT 1",
+    "draft_correct": true
+  },
+  {
+    "strategy": "chain",
+    "question_id": "q08",
+    "correct": false,
+    "reason": "row count differs: got 7, expected 12",
+    "sql": "SELECT\n  e1.name,\n  e2.name\nFROM employees AS e1\nJOIN employees AS e2\n  ON e1.manager_id = e2.id\nGROUP BY\n  e1.name,\n  e2.name\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.017279299994697794,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "SELECT employees.name, manager.name FROM employees JOIN managers ON employees.manager_id = managers.id GROUP BY employees.name, manager.name",
+    "draft_correct": false
+  },
+  {
+    "strategy": "chain",
+    "question_id": "q09",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  name\nFROM employees\nWHERE\n  salary > (\n    SELECT\n      AVG(salary)\n    FROM employees\n  )\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.05029139999533072,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT name FROM employees WHERE salary > (SELECT AVG(salary) FROM employees)",
+    "draft_correct": true
+  },
+  {
+    "strategy": "chain",
+    "question_id": "q10",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  e.name,\n  COUNT(o.id) AS order_count\nFROM employees AS e\nJOIN orders AS o\n  ON e.id = o.employee_id\nGROUP BY\n  e.name\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.01492570000118576,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT e.name, COUNT(o.id) AS order_count\nFROM employees e\nJOIN orders o ON e.id = o.employee_id\nGROUP BY e.name",
+    "draft_correct": true
+  },
+  {
+    "strategy": "chain",
+    "question_id": "q11",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  departments.name AS department,\n  SUM(employees.salary) AS total_salary\nFROM employees\nJOIN departments\n  ON employees.department_id = departments.id\nGROUP BY\n  departments.name\nORDER BY\n  total_salary DESC\nLIMIT 1",
+    "calls": 5,
+    "seconds": 0.01738050000858493,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "SELECT department, SUM(salary) AS total_salary FROM employees GROUP BY department ORDER BY total_salary DESC LIMIT 1",
+    "draft_correct": false
+  },
+  {
+    "strategy": "chain",
+    "question_id": "q12",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  COUNT(*)\nFROM employees\nWHERE\n  hired_on >= '2021-01-01'\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.012305100011872128,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT COUNT(*) FROM employees WHERE hired_on >= '2021-01-01'",
+    "draft_correct": true
+  },
+  {
+    "strategy": "chain",
+    "question_id": "h01",
+    "correct": false,
+    "reason": "row count differs: got 1, expected 4",
+    "sql": "SELECT\n  d.name AS department,\n  e.name AS employee_name\nFROM employees AS e\nJOIN departments AS d\n  ON e.department_id = d.id\nGROUP BY\n  d.name,\n  e.name\nORDER BY\n  d.name,\n  e.salary DESC\nLIMIT 1",
+    "calls": 4,
+    "seconds": 0.016730700008338317,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT d.name AS department, e.name AS employee_name FROM employees e JOIN departments d ON e.department_id = d.id GROUP BY d.name, e.name ORDER BY d.name, e.salary DESC LIMIT 1",
+    "draft_correct": false
+  },
+  {
+    "strategy": "chain",
+    "question_id": "h02",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  name\nFROM employees\nWHERE\n  NOT id IN (\n    SELECT\n      employee_id\n    FROM orders\n  )\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.013182199996663257,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT name FROM employees WHERE id NOT IN (SELECT employee_id FROM orders)",
+    "draft_correct": true
+  },
+  {
+    "strategy": "chain",
+    "question_id": "h03",
+    "correct": false,
+    "reason": "same row count, different values",
+    "sql": "SELECT\n  CAST(SUM(CASE WHEN T2.status = 'cancelled' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(T2.id)\nFROM order_items AS T1\nINNER JOIN orders AS T2\n  ON T1.order_id = T2.id\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.016400299995439127,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT CAST(SUM(CASE WHEN T2.status = 'cancelled' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(T2.id) FROM order_items AS T1 INNER JOIN orders AS T2 ON T1.order_id = T2.id",
+    "draft_correct": false
+  },
+  {
+    "strategy": "chain",
+    "question_id": "h04",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name AS department,\n  SUM(oi.price * oi.quantity) AS total_revenue\nFROM departments AS d\nJOIN employees AS e\n  ON d.id = e.department_id\nJOIN orders AS o\n  ON e.id = o.employee_id\nJOIN order_items AS oi\n  ON o.id = oi.order_id\nGROUP BY\n  d.name\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.020295900001656264,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT d.name AS department, SUM(oi.price * oi.quantity) AS total_revenue\nFROM departments d\nJOIN employees e ON d.id = e.department_id\nJOIN orders o ON e.id = o.employee_id\nJOIN order_items oi ON o.id = oi.order_id\nGROUP BY d.name",
+    "draft_correct": true
+  },
+  {
+    "strategy": "chain",
+    "question_id": "h05",
+    "correct": false,
+    "reason": "same row count, different values",
+    "sql": "SELECT\n  e.name AS manager_name,\n  COUNT(*) AS count\nFROM employees AS e\nGROUP BY\n  e.name\nORDER BY\n  count DESC\nLIMIT 1",
+    "calls": 5,
+    "seconds": 0.014937899977667257,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "SELECT manager_name, COUNT(*) AS count FROM employees GROUP BY manager_name ORDER BY count DESC LIMIT 1",
+    "draft_correct": false
+  },
+  {
+    "strategy": "chain",
+    "question_id": "h06",
+    "correct": false,
+    "reason": "query failed: no such column: T1.product_id",
+    "sql": "SELECT COUNT(DISTINCT T1.customer) AS customers, T2.name AS product FROM orders AS T1 INNER JOIN products AS T2 ON T1.product_id = T2.id GROUP BY T2.name",
+    "calls": 6,
+    "seconds": 0.021527999982936308,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "SELECT COUNT(DISTINCT T1.customer_id) AS customers, T2.name AS product FROM order_items AS T1 INNER JOIN products AS T2 ON T1.product_id = T2.id GROUP BY T2.name",
+    "draft_correct": false
+  },
+  {
+    "strategy": "chain",
+    "question_id": "h07",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name\nFROM departments AS d\nJOIN employees AS e\n  ON d.id = e.department_id\nGROUP BY\n  d.name\nHAVING\n  AVG(e.salary) > (\n    SELECT\n      AVG(salary)\n    FROM employees\n  )\nLIMIT 500",
+    "calls": 5,
+    "seconds": 0.017664199986029416,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "SELECT department FROM employees GROUP BY department HAVING AVG(salary) > (SELECT AVG(salary) FROM employees)",
+    "draft_correct": false
+  },
+  {
+    "strategy": "chain",
+    "question_id": "h08",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  o.id AS order_id,\n  o.amount AS recorded_order_amount,\n  SUM(i.quantity * i.price) AS sum_of_line_items\nFROM orders AS o\nJOIN order_items AS i\n  ON o.id = i.order_id\nGROUP BY\n  o.id\nORDER BY\n  o.id ASC\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.016445100016426295,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT o.id AS order_id, o.amount AS recorded_order_amount, SUM(i.quantity * i.price) AS sum_of_line_items FROM orders o JOIN order_items i ON o.id = i.order_id GROUP BY o.id ORDER BY o.id ASC",
+    "draft_correct": true
+  },
+  {
+    "strategy": "chain",
+    "question_id": "h09",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  COUNT(id)\nFROM orders\nWHERE\n  ordered_on >= '2024-01-01' AND ordered_on < '2024-04-01'\nLIMIT 500",
+    "calls": 5,
+    "seconds": 0.014311199978692457,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "SELECT COUNT(order_id) FROM orders WHERE ordered_on >= '2024-01-01' AND ordered_on < '2024-04-01'",
+    "draft_correct": false
+  },
+  {
+    "strategy": "chain",
+    "question_id": "h10",
+    "correct": false,
+    "reason": "query failed: no such column: T2.revenue",
+    "sql": "SELECT T3.category, SUM(T2.revenue) AS total_revenue FROM order_items AS T1 INNER JOIN orders AS T2 ON T1.order_id = T2.id INNER JOIN products AS T3 ON T1.product_id = T3.id WHERE T2.status = 'shipped' GROUP BY T3.category ORDER BY total_revenue DESC LIMIT 1",
+    "calls": 6,
+    "seconds": 0.02193660000921227,
+    "agents": [
+      "intent",
+      "scout",
+      "writer",
+      "verifier",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "SELECT T1.category, SUM(T2.revenue) AS total_revenue FROM order_items AS T1 INNER JOIN orders AS T2 ON T1.order_id = T2.id WHERE T2.status = 'shipped' GROUP BY T1.category ORDER BY total_revenue DESC LIMIT 1",
+    "draft_correct": false
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "q01",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  COUNT(*)\nFROM employees\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.012046699994243681,
+    "agents": [
+      "writer",
+      "reviewers",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT COUNT(*) FROM employees",
+    "draft_correct": true
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "q02",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  departments.name,\n  departments.city\nFROM departments\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.010379500017734244,
+    "agents": [
+      "writer",
+      "reviewers",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT departments.name, departments.city FROM departments",
+    "draft_correct": true
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "q03",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  AVG(e.salary)\nFROM employees AS e\nJOIN departments AS d\n  ON e.department_id = d.id\nWHERE\n  d.name = 'Engineering'\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.012635999999474734,
+    "agents": [
+      "writer",
+      "reviewers",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT AVG(e.salary) \nFROM employees e \nJOIN departments d ON e.department_id = d.id \nWHERE d.name = 'Engineering'",
+    "draft_correct": true
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "q04",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name,\n  COUNT(e.id) AS employee_count\nFROM departments AS d\nLEFT JOIN employees AS e\n  ON d.id = e.department_id\nGROUP BY\n  d.name\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.01419960000202991,
+    "agents": [
+      "writer",
+      "reviewers",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT d.name, COUNT(e.id) AS employee_count\nFROM departments d\nLEFT JOIN employees e ON d.id = e.department_id\nGROUP BY d.name",
+    "draft_correct": true
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "q05",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  e.name\nFROM employees AS e\nLEFT JOIN departments AS d\n  ON e.department_id = d.id\nWHERE\n  d.id IS NULL\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.01195799998822622,
+    "agents": [
+      "writer",
+      "reviewers",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT e.name FROM employees e LEFT JOIN departments d ON e.department_id = d.id WHERE d.id IS NULL",
+    "draft_correct": true
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "q06",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  SUM(amount) AS total_value\nFROM orders\nWHERE\n  status = 'shipped'\nLIMIT 500",
+    "calls": 1,
+    "seconds": 0.006499899987829849,
+    "agents": [
+      "writer",
+      "schema-check",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT SUM(amount) AS total_value FROM orders WHERE status = 'shipped'",
+    "draft_correct": true
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "q07",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  p.category,\n  SUM(oi.quantity * oi.price) AS total_revenue\nFROM order_items AS oi\nJOIN products AS p\n  ON oi.product_id = p.id\nGROUP BY\n  p.category\nORDER BY\n  total_revenue DESC\nLIMIT 1",
+    "calls": 4,
+    "seconds": 0.014535100024659187,
+    "agents": [
+      "writer",
+      "reviewers",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT p.category, SUM(oi.quantity * oi.price) AS total_revenue\nFROM order_items oi\nJOIN products p ON oi.product_id = p.id\nGROUP BY p.category\nORDER BY total_revenue DESC\nLIMIT 1;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "q08",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  e.name AS employee_name,\n  m.name AS manager_name\nFROM employees AS e\nLEFT JOIN employees AS m\n  ON e.manager_id = m.id\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.014483999984804541,
+    "agents": [
+      "writer",
+      "reviewers",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT e.name AS employee_name, m.name AS manager_name\nFROM employees e\nLEFT JOIN employees m ON e.manager_id = m.id;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "q09",
+    "correct": false,
+    "reason": "same row count, different values",
+    "sql": "SELECT\n  e.name,\n  e.salary\nFROM employees AS e\nWHERE\n  e.salary > (\n    SELECT\n      AVG(salary)\n    FROM employees\n  )\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.012880099995527416,
+    "agents": [
+      "writer",
+      "reviewers",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT e.name, e.salary\nFROM employees e\nWHERE e.salary > (SELECT AVG(salary) FROM employees)",
+    "draft_correct": false
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "q10",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  e.name,\n  COUNT(o.id) AS order_count\nFROM employees AS e\nLEFT JOIN orders AS o\n  ON e.id = o.employee_id\nWHERE\n  e.department_id = (\n    SELECT\n      id\n    FROM departments\n    WHERE\n      name = 'Sales'\n  )\nGROUP BY\n  e.name\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.01533160000690259,
+    "agents": [
+      "writer",
+      "reviewers",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT e.name, COUNT(o.id) AS order_count\nFROM employees e\nLEFT JOIN orders o ON e.id = o.employee_id\nWHERE e.department_id = (SELECT id FROM departments WHERE name = 'Sales')\nGROUP BY e.name;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "q11",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name,\n  SUM(e.salary) AS total_salary\nFROM employees AS e\nLEFT JOIN departments AS d\n  ON e.department_id = d.id\nGROUP BY\n  d.name\nORDER BY\n  total_salary DESC\nLIMIT 1",
+    "calls": 4,
+    "seconds": 0.013920400000642985,
+    "agents": [
+      "writer",
+      "reviewers",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT d.name, SUM(e.salary) AS total_salary\nFROM employees e\nLEFT JOIN departments d ON e.department_id = d.id\nGROUP BY d.name\nORDER BY total_salary DESC\nLIMIT 1;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "q12",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  COUNT(*)\nFROM employees\nWHERE\n  hired_on >= '2021-01-01'\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.010060799977509305,
+    "agents": [
+      "writer",
+      "reviewers",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT COUNT(*) FROM employees WHERE hired_on >= '2021-01-01';",
+    "draft_correct": true
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "h01",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name,\n  e.name\nFROM departments AS d\nLEFT JOIN employees AS e\n  ON d.id = e.department_id\nWHERE\n  e.salary = (\n    SELECT\n      MAX(salary)\n    FROM employees\n    WHERE\n      department_id = d.id\n  )\nGROUP BY\n  d.name,\n  e.name\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.01695700001437217,
+    "agents": [
+      "writer",
+      "reviewers",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT d.name, e.name\nFROM departments d\nLEFT JOIN employees e ON d.id = e.department_id\nWHERE e.salary = (SELECT MAX(salary) FROM employees WHERE department_id = d.id)\nGROUP BY d.name, e.name;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "h02",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  e.name\nFROM employees AS e\nLEFT JOIN orders AS o\n  ON e.id = o.employee_id\nWHERE\n  o.id IS NULL\nLIMIT 500",
+    "calls": 2,
+    "seconds": 0.010757299984106794,
+    "agents": [
+      "writer",
+      "schema-check",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "SELECT e.name FROM employees e\nLEFT JOIN order_items oi ON e.id = oi.employee_id\nWHERE oi.id IS NULL",
+    "draft_correct": false
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "h03",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  CAST(SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*)\nFROM orders\nLIMIT 500",
+    "calls": 2,
+    "seconds": 0.012393200013320893,
+    "agents": [
+      "writer",
+      "schema-check",
+      "fixer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT CAST(SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*) FROM orders",
+    "draft_correct": true
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "h04",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name AS department_name,\n  SUM(oi.price * oi.quantity) AS total_revenue\nFROM order_items AS oi\nJOIN orders AS o\n  ON oi.order_id = o.id\nJOIN employees AS e\n  ON o.employee_id = e.id\nJOIN departments AS d\n  ON e.department_id = d.id\nWHERE\n  d.name = 'Sales'\nGROUP BY\n  d.name\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.017783000017516315,
+    "agents": [
+      "writer",
+      "reviewers",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT d.name AS department_name, SUM(oi.price * oi.quantity) AS total_revenue\nFROM order_items oi\nJOIN orders o ON oi.order_id = o.id\nJOIN employees e ON o.employee_id = e.id\nJOIN departments d ON e.department_id = d.id\nWHERE d.name = 'Sales'\nGROUP BY d.name;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "h05",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  e.name,\n  COUNT(e2.id) AS report_count\nFROM employees AS e\nLEFT JOIN employees AS e2\n  ON e.id = e2.manager_id\nGROUP BY\n  e.id\nORDER BY\n  report_count DESC\nLIMIT 1",
+    "calls": 4,
+    "seconds": 0.02596369999810122,
+    "agents": [
+      "writer",
+      "reviewers",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT e.name, COUNT(e2.id) AS report_count\nFROM employees e\nLEFT JOIN employees e2 ON e.id = e2.manager_id\nGROUP BY e.id\nORDER BY report_count DESC\nLIMIT 1;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "h06",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  p.name,\n  COUNT(DISTINCT o.customer) AS distinct_customers\nFROM products AS p\nLEFT JOIN order_items AS oi\n  ON p.id = oi.product_id\nLEFT JOIN orders AS o\n  ON oi.order_id = o.id\nGROUP BY\n  p.name\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.024077999987639487,
+    "agents": [
+      "writer",
+      "reviewers",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT p.name, COUNT(DISTINCT o.customer) AS distinct_customers\nFROM products p\nLEFT JOIN order_items oi ON p.id = oi.product_id\nLEFT JOIN orders o ON oi.order_id = o.id\nGROUP BY p.name;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "h07",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name\nFROM departments AS d\nLEFT JOIN employees AS e\n  ON d.id = e.department_id\nGROUP BY\n  d.name\nHAVING\n  AVG(e.salary) > (\n    SELECT\n      AVG(salary)\n    FROM employees\n  )\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.016696600010618567,
+    "agents": [
+      "writer",
+      "reviewers",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT d.name\nFROM departments d\nLEFT JOIN employees e ON d.id = e.department_id\nGROUP BY d.name\nHAVING AVG(e.salary) > (SELECT AVG(salary) FROM employees);",
+    "draft_correct": true
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "h08",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  o.id,\n  o.amount,\n  SUM(oi.quantity * oi.price) AS total_line_items\nFROM orders AS o\nLEFT JOIN order_items AS oi\n  ON o.id = oi.order_id\nGROUP BY\n  o.id,\n  o.amount\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.04174680000869557,
+    "agents": [
+      "writer",
+      "reviewers",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT o.id, o.amount, SUM(oi.quantity * oi.price) AS total_line_items\nFROM orders o\nLEFT JOIN order_items oi ON o.id = oi.order_id\nGROUP BY o.id, o.amount;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "h09",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  COUNT(*)\nFROM orders\nWHERE\n  STRFTIME('%Y-%m', ordered_on) BETWEEN '2024-01' AND '2024-03'\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.013132099993526936,
+    "agents": [
+      "writer",
+      "reviewers",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT COUNT(*) FROM orders WHERE strftime('%Y-%m', ordered_on) BETWEEN '2024-01' AND '2024-03'",
+    "draft_correct": true
+  },
+  {
+    "strategy": "parallel",
+    "question_id": "h10",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  p.category,\n  SUM(oi.quantity * oi.price) AS total_revenue\nFROM order_items AS oi\nJOIN orders AS o\n  ON oi.order_id = o.id\nJOIN products AS p\n  ON oi.product_id = p.id\nWHERE\n  o.status = 'shipped'\nGROUP BY\n  p.category\nORDER BY\n  total_revenue DESC\nLIMIT 1",
+    "calls": 4,
+    "seconds": 0.0177972000092268,
+    "agents": [
+      "writer",
+      "reviewers",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT p.category, SUM(oi.quantity * oi.price) AS total_revenue\nFROM order_items oi\nJOIN orders o ON oi.order_id = o.id\nJOIN products p ON oi.product_id = p.id\nWHERE o.status = 'shipped'\nGROUP BY p.category\nORDER BY total_revenue DESC\nLIMIT 1;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "q01",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  COUNT(*)\nFROM employees\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.013077600015094504,
+    "agents": [
+      "writer",
+      "evaluator",
+      "optimizer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT COUNT(*) FROM employees",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "q02",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  departments.name,\n  departments.city\nFROM departments\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.012766800005920231,
+    "agents": [
+      "writer",
+      "evaluator",
+      "optimizer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT departments.name, departments.city FROM departments",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "q03",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  AVG(e.salary)\nFROM employees AS e\nJOIN departments AS d\n  ON e.department_id = d.id\nWHERE\n  d.name = 'Engineering'\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.016311599989421666,
+    "agents": [
+      "writer",
+      "evaluator",
+      "optimizer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT AVG(e.salary) \nFROM employees e \nJOIN departments d ON e.department_id = d.id \nWHERE d.name = 'Engineering'",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "q04",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name,\n  COUNT(e.id) AS employee_count\nFROM departments AS d\nLEFT JOIN employees AS e\n  ON d.id = e.department_id\nGROUP BY\n  d.name\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.016279199975542724,
+    "agents": [
+      "writer",
+      "evaluator",
+      "optimizer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT d.name, COUNT(e.id) AS employee_count\nFROM departments d\nLEFT JOIN employees e ON d.id = e.department_id\nGROUP BY d.name",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "q05",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  e.name\nFROM employees AS e\nLEFT JOIN departments AS d\n  ON e.department_id = d.id\nWHERE\n  d.id IS NULL\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.015220599976601079,
+    "agents": [
+      "writer",
+      "evaluator",
+      "optimizer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT e.name FROM employees e\nLEFT JOIN departments d ON e.department_id = d.id\nWHERE d.id IS NULL",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "q06",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  SUM(amount) AS total_value\nFROM orders\nWHERE\n  status = 'shipped'\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.0131861999980174,
+    "agents": [
+      "writer",
+      "evaluator",
+      "optimizer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT SUM(amount) AS total_value FROM orders WHERE status = 'shipped'",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "q07",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  p.category,\n  SUM(oi.quantity * oi.price) AS total_revenue\nFROM order_items AS oi\nJOIN products AS p\n  ON oi.product_id = p.id\nGROUP BY\n  p.category\nORDER BY\n  total_revenue DESC\nLIMIT 1",
+    "calls": 2,
+    "seconds": 0.010725899977842346,
+    "agents": [
+      "writer",
+      "evaluator",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT p.category, SUM(oi.quantity * oi.price) AS total_revenue\nFROM order_items oi\nJOIN products p ON oi.product_id = p.id\nGROUP BY p.category\nORDER BY total_revenue DESC\nLIMIT 1;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "q08",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  e.name AS employee_name,\n  m.name AS manager_name\nFROM employees AS e\nLEFT JOIN employees AS m\n  ON e.manager_id = m.id\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.01584579999325797,
+    "agents": [
+      "writer",
+      "evaluator",
+      "optimizer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT e.name AS employee_name, m.name AS manager_name\nFROM employees e\nLEFT JOIN employees m ON e.manager_id = m.id;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "q09",
+    "correct": false,
+    "reason": "same row count, different values",
+    "sql": "SELECT\n  e.name,\n  e.salary\nFROM employees AS e\nWHERE\n  e.salary > (\n    SELECT\n      AVG(salary)\n    FROM employees\n  )\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.015013399999588728,
+    "agents": [
+      "writer",
+      "evaluator",
+      "optimizer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT e.name, e.salary\nFROM employees e\nWHERE e.salary > (SELECT AVG(salary) FROM employees)",
+    "draft_correct": false
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "q10",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  e.name,\n  COUNT(o.id) AS order_count\nFROM employees AS e\nLEFT JOIN orders AS o\n  ON e.id = o.employee_id\nWHERE\n  e.department_id = (\n    SELECT\n      id\n    FROM departments\n    WHERE\n      name = 'Sales'\n  )\nGROUP BY\n  e.name\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.018244100006995723,
+    "agents": [
+      "writer",
+      "evaluator",
+      "optimizer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT e.name, COUNT(o.id) AS order_count\nFROM employees e\nLEFT JOIN orders o ON e.id = o.employee_id\nWHERE e.department_id = (SELECT id FROM departments WHERE name = 'Sales')\nGROUP BY e.name;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "q11",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name,\n  SUM(e.salary) AS total_salary\nFROM employees AS e\nLEFT JOIN departments AS d\n  ON e.department_id = d.id\nGROUP BY\n  d.name\nORDER BY\n  total_salary DESC\nLIMIT 1",
+    "calls": 2,
+    "seconds": 0.011187299998709932,
+    "agents": [
+      "writer",
+      "evaluator",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT d.name, SUM(e.salary) AS total_salary\nFROM employees e\nLEFT JOIN departments d ON e.department_id = d.id\nGROUP BY d.name\nORDER BY total_salary DESC\nLIMIT 1;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "q12",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  COUNT(*)\nFROM employees\nWHERE\n  hired_on >= '2021-01-01'\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.013751999998930842,
+    "agents": [
+      "writer",
+      "evaluator",
+      "optimizer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT COUNT(*) FROM employees WHERE hired_on >= '2021-01-01';",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "h01",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name,\n  e.name\nFROM departments AS d\nJOIN employees AS e\n  ON d.id = e.department_id\nWHERE\n  e.salary = (\n    SELECT\n      MAX(salary)\n    FROM employees\n    WHERE\n      department_id = d.id\n  )\nGROUP BY\n  d.name,\n  e.name\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.017351899994537234,
+    "agents": [
+      "writer",
+      "evaluator",
+      "optimizer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT d.name, e.name\nFROM departments d\nJOIN employees e ON d.id = e.department_id\nWHERE e.salary = (SELECT MAX(salary) FROM employees WHERE department_id = d.id)\nGROUP BY d.name, e.name;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "h02",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  e.name\nFROM employees AS e\nLEFT JOIN orders AS o\n  ON e.id = o.employee_id\nWHERE\n  o.id IS NULL\nLIMIT 500",
+    "calls": 7,
+    "seconds": 0.019714699999894947,
+    "agents": [
+      "writer",
+      "evaluator",
+      "optimizer",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "SELECT e.name FROM employees e\nLEFT JOIN order_items oi ON e.id = oi.employee_id\nWHERE oi.id IS NULL",
+    "draft_correct": false
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "h03",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  CAST(SUM(CASE WHEN o.status = 'cancelled' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*)\nFROM orders AS o\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.01721779999206774,
+    "agents": [
+      "writer",
+      "evaluator",
+      "optimizer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT CAST(SUM(CASE WHEN o.status = 'cancelled' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*) FROM orders o",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "h04",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name AS department_name,\n  SUM(oi.price * oi.quantity) AS total_revenue\nFROM order_items AS oi\nJOIN orders AS o\n  ON oi.order_id = o.id\nJOIN employees AS e\n  ON o.employee_id = e.id\nJOIN departments AS d\n  ON e.department_id = d.id\nGROUP BY\n  d.name\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.02041959998314269,
+    "agents": [
+      "writer",
+      "evaluator",
+      "optimizer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT d.name AS department_name, SUM(oi.price * oi.quantity) AS total_revenue\nFROM order_items oi\nJOIN orders o ON oi.order_id = o.id\nJOIN employees e ON o.employee_id = e.id\nJOIN departments d ON e.department_id = d.id\nGROUP BY d.name;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "h05",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  e.name,\n  COUNT(e2.id) AS report_count\nFROM employees AS e\nLEFT JOIN employees AS e2\n  ON e.id = e2.manager_id\nWHERE\n  NOT e2.id IS NULL\nGROUP BY\n  e.id\nORDER BY\n  report_count DESC\nLIMIT 1",
+    "calls": 6,
+    "seconds": 0.01771390001522377,
+    "agents": [
+      "writer",
+      "evaluator",
+      "optimizer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT e.name, COUNT(e2.id) AS report_count\nFROM employees e\nLEFT JOIN employees e2 ON e.id = e2.manager_id\nWHERE e2.id IS NOT NULL  -- Ensure we only count direct reports\nGROUP BY e.id\nORDER BY report_count DESC\nLIMIT 1;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "h06",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  p.name,\n  COUNT(DISTINCT o.customer) AS distinct_customers\nFROM products AS p\nLEFT JOIN order_items AS oi\n  ON p.id = oi.product_id\nLEFT JOIN orders AS o\n  ON oi.order_id = o.id\nGROUP BY\n  p.name\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.021873400022741407,
+    "agents": [
+      "writer",
+      "evaluator",
+      "optimizer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT p.name, COUNT(DISTINCT o.customer) AS distinct_customers\nFROM products p\nLEFT JOIN order_items oi ON p.id = oi.product_id\nLEFT JOIN orders o ON oi.order_id = o.id\nGROUP BY p.name;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "h07",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name\nFROM departments AS d\nLEFT JOIN employees AS e\n  ON d.id = e.department_id\nGROUP BY\n  d.name\nHAVING\n  AVG(e.salary) > (\n    SELECT\n      AVG(salary)\n    FROM employees\n  )\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.01815560000250116,
+    "agents": [
+      "writer",
+      "evaluator",
+      "optimizer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT d.name\nFROM departments d\nLEFT JOIN employees e ON d.id = e.department_id\nGROUP BY d.name\nHAVING AVG(e.salary) > (SELECT AVG(salary) FROM employees);",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "h08",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  o.id,\n  o.amount,\n  SUM(oi.quantity * oi.price) AS total_line_items\nFROM orders AS o\nLEFT JOIN order_items AS oi\n  ON o.id = oi.order_id\nGROUP BY\n  o.id,\n  o.amount\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.018365099997026846,
+    "agents": [
+      "writer",
+      "evaluator",
+      "optimizer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT o.id, o.amount, SUM(oi.quantity * oi.price) AS total_line_items\nFROM orders o\nLEFT JOIN order_items oi ON o.id = oi.order_id\nGROUP BY o.id, o.amount;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "h09",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  COUNT(*)\nFROM orders\nWHERE\n  STRFTIME('%Y-%m', ordered_on) BETWEEN '2024-01' AND '2024-03'\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.015226099989376962,
+    "agents": [
+      "writer",
+      "evaluator",
+      "optimizer",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT COUNT(*) FROM orders WHERE strftime('%Y-%m', ordered_on) BETWEEN '2024-01' AND '2024-03'",
+    "draft_correct": true
+  },
+  {
+    "strategy": "eval_optimize",
+    "question_id": "h10",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  p.category,\n  SUM(oi.quantity * oi.price) AS total_revenue\nFROM order_items AS oi\nJOIN orders AS o\n  ON oi.order_id = o.id\nJOIN products AS p\n  ON oi.product_id = p.id\nWHERE\n  o.status = 'shipped'\nGROUP BY\n  p.category\nORDER BY\n  total_revenue DESC\nLIMIT 1",
+    "calls": 2,
+    "seconds": 0.014565399993443862,
+    "agents": [
+      "writer",
+      "evaluator",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT p.category, SUM(oi.quantity * oi.price) AS total_revenue\nFROM order_items oi\nJOIN orders o ON oi.order_id = o.id\nJOIN products p ON oi.product_id = p.id\nWHERE o.status = 'shipped'\nGROUP BY p.category\nORDER BY total_revenue DESC\nLIMIT 1;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "q01",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  COUNT(*)\nFROM employees\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.014339599991217256,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT COUNT(*) FROM employees",
+    "draft_correct": true
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "q02",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  departments.name,\n  departments.city\nFROM departments\nLIMIT 500",
+    "calls": 3,
+    "seconds": 0.008456900017336011,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT departments.name, departments.city FROM departments",
+    "draft_correct": true
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "q03",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  AVG(T2.salary)\nFROM departments AS T1\nINNER JOIN employees AS T2\n  ON T2.department_id = T1.id\nWHERE\n  T1.name = 'Engineering'\nLIMIT 500",
+    "calls": 8,
+    "seconds": 0.05979329999536276,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "SELECT AVG(T1.salary) \nFROM departments AS T1 \nINNER JOIN employees AS T2 ON employees.manager_id = T2.id \nINNER JOIN employees AS T1 ON employees.department_id = T1.id \nWHERE departments.name = 'Engineering'",
+    "draft_correct": false
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "q04",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  departments.name,\n  COUNT(employees.id) AS employee_count\nFROM departments\nLEFT JOIN employees\n  ON departments.id = employees.department_id\nGROUP BY\n  departments.name\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.01624129997799173,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT departments.name, COUNT(employees.id) AS employee_count\nFROM departments\nLEFT JOIN employees ON departments.id = employees.department_id\nGROUP BY departments.name;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "q05",
+    "correct": false,
+    "reason": "same row count, different values",
+    "sql": "SELECT\n  employees.id,\n  employees.name\nFROM employees\nWHERE\n  department_id IS NULL\nLIMIT 500",
+    "calls": 5,
+    "seconds": 0.012271299987332895,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT employees.id, employees.name FROM employees WHERE department_id IS NULL",
+    "draft_correct": false
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "q06",
+    "correct": false,
+    "reason": "same row count, different values",
+    "sql": "SELECT\n  SUM(o.amount)\nFROM orders AS o\nINNER JOIN order_items AS oi\n  ON o.id = oi.order_id\nWHERE\n  o.status = 'shipped'\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.0159597999881953,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT SUM(o.amount) \nFROM orders o \nINNER JOIN order_items oi ON o.id = oi.order_id \nWHERE o.status = 'shipped';",
+    "draft_correct": false
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "q07",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  products.category,\n  SUM(order_items.quantity * order_items.price) AS total_revenue\nFROM products\nINNER JOIN order_items\n  ON products.id = order_items.product_id\nGROUP BY\n  products.category\nHAVING\n  SUM(order_items.quantity * order_items.price) > 0\nORDER BY\n  total_revenue DESC\nLIMIT 1",
+    "calls": 7,
+    "seconds": 0.06228669997653924,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT products.category, SUM(order_items.quantity * order_items.price) AS total_revenue\nFROM products\nINNER JOIN order_items ON products.id = order_items.product_id\nGROUP BY products.category\nHAVING SUM(order_items.quantity * order_items.price) > 0\nORDER BY total_revenue DESC\nLIMIT 1;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "q08",
+    "correct": false,
+    "reason": "row count differs: got 7, expected 12",
+    "sql": "SELECT\n  employees.name,\n  manager.name AS manager_name\nFROM employees\nINNER JOIN employees AS manager\n  ON employees.manager_id = manager.id\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.012873100000433624,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT employees.name, manager.name AS manager_name\nFROM employees\nINNER JOIN employees AS manager ON employees.manager_id = manager.id;",
+    "draft_correct": false
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "q09",
+    "correct": false,
+    "reason": "row count differs: got 1, expected 5",
+    "sql": "SELECT\n  department_id,\n  AVG(salary) AS avg_salary\nFROM employees\nGROUP BY\n  department_id\nHAVING\n  avg_salary < (\n    SELECT\n      AVG(salary)\n    FROM employees\n  )\nORDER BY\n  avg_salary DESC\nLIMIT 1",
+    "calls": 5,
+    "seconds": 0.019511699996655807,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT department_id, AVG(salary) AS avg_salary\nFROM employees\nGROUP BY department_id\nHAVING avg_salary < (SELECT AVG(salary) FROM employees)\nORDER BY avg_salary DESC\nLIMIT 1;",
+    "draft_correct": false
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "q10",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  employees.name,\n  COUNT(orders.id) AS order_count\nFROM employees\nINNER JOIN orders\n  ON employees.id = orders.employee_id\nGROUP BY\n  employees.name\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.018019700015429407,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT employees.name, COUNT(orders.id) AS order_count\nFROM employees\nINNER JOIN orders ON employees.id = orders.employee_id\nGROUP BY employees.name;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "q11",
+    "correct": false,
+    "reason": "same row count, different values",
+    "sql": "SELECT\n  T1.name,\n  SUM(T3.price * T3.quantity) AS total_salary_spend\nFROM departments AS T1\nINNER JOIN employees AS T2\n  ON T1.id = T2.department_id\nINNER JOIN order_items AS T3\n  ON T3.order_id = T2.id\nINNER JOIN orders AS T4\n  ON T4.id = T3.order_id\nGROUP BY\n  T1.name\nORDER BY\n  total_salary_spend DESC\nLIMIT 1",
+    "calls": 6,
+    "seconds": 0.03126519999932498,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT T1.name, SUM(T3.price * T3.quantity) AS total_salary_spend\nFROM departments AS T1\nINNER JOIN employees AS T2 ON T1.id = T2.department_id\nINNER JOIN order_items AS T3 ON T3.order_id = T2.id\nINNER JOIN orders AS T4 ON T4.id = T3.order_id\nGROUP BY T1.name\nORDER BY total_salary_spend DESC\nLIMIT 1",
+    "draft_correct": false
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "q12",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  COUNT(*)\nFROM employees\nWHERE\n  hired_on >= '2021-01-01'\nLIMIT 500",
+    "calls": 4,
+    "seconds": 0.010035499988589436,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT COUNT(*) FROM employees WHERE hired_on >= '2021-01-01'",
+    "draft_correct": true
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "h01",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name AS department,\n  e.name AS employee_name\nFROM departments AS d\nJOIN employees AS e\n  ON d.id = e.department_id\nWHERE\n  e.salary = (\n    SELECT\n      MAX(salary)\n    FROM employees\n    WHERE\n      department_id = d.id\n  )\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.020931600010953844,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT d.name AS department, e.name AS employee_name\nFROM departments d\nJOIN employees e ON d.id = e.department_id\nWHERE e.salary = ( SELECT MAX(salary) FROM employees WHERE department_id = d.id )",
+    "draft_correct": true
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "h02",
+    "correct": false,
+    "reason": "same row count, different values",
+    "sql": "SELECT\n  employees.id\nFROM employees\nWHERE\n  NOT employees.id IN (\n    SELECT\n      employee_id\n    FROM orders\n  )\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.015731999999843538,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "SELECT employees.id FROM employees WHERE employees.id NOT IN (SELECT employee_id FROM order_items)",
+    "draft_correct": false
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "h03",
+    "correct": false,
+    "reason": "same row count, different values",
+    "sql": "SELECT\n  (\n    CAST(COUNT(CASE WHEN T2.status = 'cancelled' THEN T2.id ELSE NULL END) AS REAL) * 100\n  ) / COUNT(T2.id) AS cancelled_percentage\nFROM employees AS T1\nLEFT JOIN orders AS T2\n  ON T1.id = T2.employee_id\nLEFT JOIN order_items AS T3\n  ON T2.id = T3.order_id\nLEFT JOIN products AS T4\n  ON T3.product_id = T4.id\nWHERE\n  T2.status = 'cancelled'\nGROUP BY\n  T2.status\nHAVING\n  T2.status = 'cancelled'\nORDER BY\n  cancelled_percentage DESC\nLIMIT 1",
+    "calls": 6,
+    "seconds": 0.05913810001220554,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT \n    (CAST(COUNT(CASE WHEN T2.status = 'cancelled' THEN T2.id ELSE NULL END) AS REAL) * 100) / COUNT(T2.id) AS cancelled_percentage\nFROM \n    employees AS T1\nLEFT JOIN \n    orders AS T2 ON T1.id = T2.employee_id\nLEFT JOIN \n    order_items AS T3 ON T2.id = T3.order_id\nLEFT JOIN \n    products AS T4 ON T3.product_id = T4.id\nWHERE \n    T2.status = 'cancelled'\nGROUP BY \n    T2.status\nHAVING \n    T2.status = 'cancelled'\nORDER BY \n    cancelled_percentage DESC\nLIMIT 1;",
+    "draft_correct": false
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "h04",
+    "correct": false,
+    "reason": "same row count, different values",
+    "sql": "SELECT\n  SUM(T4.price) AS total_revenue,\n  T1.name AS department_name\nFROM departments AS T1\nINNER JOIN employees AS T2\n  ON T1.id = T2.department_id\nINNER JOIN orders AS T3\n  ON T2.id = T3.employee_id\nINNER JOIN order_items AS T4\n  ON T3.id = T4.order_id\nGROUP BY\n  T1.name\nLIMIT 500",
+    "calls": 7,
+    "seconds": 0.024021899997023866,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner",
+      "fixer"
+    ],
+    "repaired": true,
+    "draft_sql": "SELECT SUM(T2.price) AS total_revenue, T1.name AS department_name\nFROM departments AS T1\nINNER JOIN employees AS T2 ON T1.id = T2.department_id\nINNER JOIN orders AS T3 ON T2.id = T3.employee_id\nINNER JOIN order_items AS T4 ON T3.id = T4.order_id\nGROUP BY T1.name;",
+    "draft_correct": false
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "h05",
+    "correct": false,
+    "reason": "same row count, different values",
+    "sql": "SELECT\n  T2.name,\n  COUNT(*)\nFROM employees AS T1\nINNER JOIN employees AS T2\n  ON T1.id = T2.manager_id\nGROUP BY\n  T2.name\nORDER BY\n  COUNT(*) DESC\nLIMIT 1",
+    "calls": 6,
+    "seconds": 0.01646959999925457,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT T2.name, COUNT(*) FROM employees AS T1 INNER JOIN employees AS T2 ON T1.id = T2.manager_id GROUP BY T2.name ORDER BY COUNT(*) DESC LIMIT 1",
+    "draft_correct": false
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "h06",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  p.name,\n  COUNT(DISTINCT o.customer)\nFROM products AS p\nJOIN order_items AS oi\n  ON p.id = oi.product_id\nJOIN orders AS o\n  ON oi.order_id = o.id\nGROUP BY\n  p.name\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.01791399999638088,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT p.name, COUNT(DISTINCT o.customer) \nFROM products p \nJOIN order_items oi ON p.id = oi.product_id \nJOIN orders o ON oi.order_id = o.id \nGROUP BY p.name;",
+    "draft_correct": true
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "h07",
+    "correct": true,
+    "reason": "match",
+    "sql": "SELECT\n  d.name\nFROM departments AS d\nJOIN employees AS e\n  ON d.id = e.department_id\nGROUP BY\n  d.id\nHAVING\n  AVG(e.salary) > (\n    SELECT\n      AVG(salary)\n    FROM employees\n  )\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.06145549999200739,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT d.name FROM departments d \nJOIN employees e ON d.id = e.department_id \nGROUP BY d.id \nHAVING AVG(e.salary) > (SELECT AVG(salary) FROM employees)",
+    "draft_correct": true
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "h08",
+    "correct": false,
+    "reason": "same row count, different values",
+    "sql": "SELECT\n  orders.id AS order_id,\n  orders.amount AS recorded_order_amount,\n  SUM(order_items.price) AS sum_of_line_items\nFROM orders\nINNER JOIN order_items\n  ON orders.id = order_items.order_id\nGROUP BY\n  orders.id,\n  orders.amount\nLIMIT 500",
+    "calls": 6,
+    "seconds": 0.019061200000578538,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT \n    orders.id AS order_id,\n    orders.amount AS recorded_order_amount,\n    SUM(order_items.price) AS sum_of_line_items\nFROM \n    orders\nINNER JOIN \n    order_items ON orders.id = order_items.order_id\nGROUP BY \n    orders.id, orders.amount;",
+    "draft_correct": false
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "h09",
+    "correct": false,
+    "reason": "query failed: no such column: order_id",
+    "sql": "SELECT COUNT(order_id) AS order_count\nFROM orders\nWHERE ordered_on >= '2024-01-01' AND ordered_on < '2024-04-01';",
+    "calls": 7,
+    "seconds": 0.028018300014082342,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner",
+      "fixer"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT COUNT(order_id) AS order_count\nFROM orders\nWHERE ordered_on >= '2024-01-01' AND ordered_on < '2024-04-01';",
+    "draft_correct": false
+  },
+  {
+    "strategy": "orchestrator",
+    "question_id": "h10",
+    "correct": false,
+    "reason": "row count differs: got 0, expected 1",
+    "sql": "SELECT\n  departments.name,\n  SUM(orders.amount) AS total_revenue\nFROM orders\nINNER JOIN order_items\n  ON orders.id = order_items.order_id\nINNER JOIN products\n  ON order_items.product_id = products.id\nINNER JOIN departments\n  ON products.category = departments.name\nWHERE\n  orders.status = 'shipped'\nGROUP BY\n  departments.name\nORDER BY\n  total_revenue DESC\nLIMIT 1",
+    "calls": 6,
+    "seconds": 0.03700650000246242,
+    "agents": [
+      "orchestrator",
+      "workers",
+      "synthesiser",
+      "runner"
+    ],
+    "repaired": false,
+    "draft_sql": "SELECT departments.name, SUM(orders.amount) AS total_revenue\nFROM orders\nINNER JOIN order_items ON orders.id = order_items.order_id\nINNER JOIN products ON order_items.product_id = products.id\nINNER JOIN departments ON products.category = departments.name\nWHERE orders.status = 'shipped'\nGROUP BY departments.name\nORDER BY total_revenue DESC\nLIMIT 1;",
+    "draft_correct": false
+  }
+]
