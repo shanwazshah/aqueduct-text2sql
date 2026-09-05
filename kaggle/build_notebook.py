@@ -24,6 +24,14 @@ from pathlib import Path
 REPO = "https://github.com/shanwazshah/aqueduct-text2sql.git"
 MODEL = "qwen2.5-coder:7b"
 
+# The revision the sweep runs against. A results file that cannot be tied to a
+# revision of the code is not reproducible: the grader, the sampler and the
+# prompts all move, and any of them changes the number. Set this to an exact SHA
+# before a run whose numbers will be published; the cell prints whatever it
+# resolved to either way, so the run is at least recorded even when it is not
+# pinned.
+COMMIT = "master"
+
 
 def md(text: str) -> dict:
     return {"cell_type": "markdown", "metadata": {}, "source": text.strip().splitlines(True)}
@@ -85,10 +93,17 @@ that the model is remarkable.
 import sys, subprocess
 subprocess.run(["rm", "-rf", "/kaggle/working/aq"], check=False)
 subprocess.run(["git", "clone", "-q", "{REPO}", "/kaggle/working/aq"], check=True)
+subprocess.run(["git", "-C", "/kaggle/working/aq", "checkout", "-q", "{COMMIT}"], check=True)
 sys.path.insert(0, "/kaggle/working/aq/src")
+
+# Record the exact revision. Copy this into the EXPERIMENTS entry for the run -
+# it is what makes the numbers below reproducible rather than merely repeated.
+sha = subprocess.run(["git", "-C", "/kaggle/working/aq", "rev-parse", "HEAD"],
+                     capture_output=True, text=True).stdout.strip()
 
 import aqueduct
 print("code ready:", aqueduct.__file__)
+print("revision   :", sha)
 """),
 
     md("""
