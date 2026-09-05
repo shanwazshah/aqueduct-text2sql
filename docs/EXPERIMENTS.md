@@ -723,3 +723,192 @@ them was measuring the same thing a second way.
 
 **Status.** Phase 6 complete, including the retraction. The BIRD numbers are the
 ones to quote; the demo-set numbers are for regression testing and nothing else.
+
+## 2026-09-05 — Phase 7: an audit of the instrument, and a third false pass
+
+No new measurement of the system in this entry. Phase 7 pointed the project's own
+lesson back at itself — six instrumentation bugs against zero in the agent logic,
+every one of them found by accident — and audited the measuring apparatus
+deliberately for the first time.
+
+It found two more bugs, one gap in what gets recorded, and one reporting error
+that repeats the Phase 6 retraction in the two places a reader looks first.
+
+### The grader could be opted out of
+
+`execution_accuracy` decided row-order sensitivity like this:
+
+```python
+ordered = wants_order(gold_sql) and wants_order(predicted_sql)
+```
+
+D6 says row order is relaxed only when *neither* query sorts. The code relaxed it
+when *either* did — so a prediction escaped the ordering check by simply not
+sorting. On the demo database:
+
+```
+gold:       SELECT name, salary FROM employees ORDER BY salary DESC
+prediction: SELECT name, salary FROM employees
+grade:      match
+```
+
+Twelve rows, same values, different order, scored correct. That is the third
+false pass in the grader, after the two column-order attempts recorded in D6, and
+like both of those it ran in the flattering direction.
+
+Order-sensitivity is now decided by the reference alone: the gold query is what
+states whether sequence is part of the answer. A prediction that sorts when the
+reference does not is still correct — pinned by its own test, because trading a
+false pass for a false failure is not a fix.
+
+### The sampler was skewed, and the first diagnosis of it was wrong
+
+`stratified_sample` rounded each stratum's share independently. Independent
+rounding does not sum to `n`: on mini-dev it overshoots for 62 of the 499
+possible sample sizes and undershoots for another 62. The overshoot was corrected
+by sorting on `question_id` and truncating.
+
+The first reading was that the difficulty mix was wrong for 124 of those sizes.
+That was measured against `round()` as the yardstick — and `round()` is the thing
+that does not sum to `n`, so it was the wrong yardstick. Checked properly, the
+sample size was always exactly `n` and every stratum always landed on its floor
+or its ceiling. The mix was fine throughout.
+
+The real defect is the truncation, and it is worse. BIRD question ids are
+contiguous per database — 11 blocks, 30 to 66 questions each — so cutting the
+id-sorted list always removed questions from whichever database sorts last. Never
+a random drop.
+
+Measured at n=23 over 400 seeds:
+
+| | lowest 50 ids | highest 50 ids |
+|---|---|---|
+| old | 0.0498 | 0.0297 |
+| new | 0.0464 | 0.0458 |
+
+The last database appeared 40% less often than the first. Sample size correct,
+difficulty mix correct, selection biased — which is why nothing caught it, and
+why the check that finally did had to be a different one from the check that
+looked obvious.
+
+Replaced with largest-remainder apportionment, which sums to `n` by construction,
+so there is nothing to patch afterwards. n=100 and n=150 select the identical
+questions the old code did, verified against a captured baseline across three
+seeds, so Phase 6's sample is unchanged.
+
+### gen EX cannot be re-derived from the finished sweeps
+
+`bird_run.Row` stored `draft_correct` but not `draft_sql`. `compare.py` has
+stored the draft query since Phase 3.
+
+That asymmetry only matters when the grader changes, which it just did. Final EX
+can be re-graded from the stored `sql`. **gen EX cannot** — the draft query was
+never written down, so the column every claim in this project rests on can only
+be recovered by re-running the sweep on GPU.
+
+Fixed for future sweeps. The files already on disk are permanently ungradable for
+that column, and the re-grader reports them as *not re-gradable* rather than
+carrying the old boolean forward as though it were evidence.
+
+### The evidence was not in the repository
+
+`data/bird/` and `data/comparison.json` were both gitignored, so every number in
+the README traced back to a file nobody cloning the project could open. The
+demo-set results (84 KB) are now committed, and the BIRD sweep outputs will be
+when they are added. The questions file and the 346 MB of databases stay out;
+they are third-party and downloaded.
+
+### The retraction repeated itself in the README
+
+The headline table is introduced as "100 questions from BIRD mini-dev". Three of
+its four rows were. The `react` row was the 22-question demo set — 4.5% is 1/22 —
+and `react` was never run on BIRD at all. The footnote said "22 questions"; the
+table did not.
+
+The UI was worse. Every calls-per-question figure in its sidebar was a demo-set
+average, rendered beside a metric captioned "BIRD EX".
+
+Conflating a demo-set number with a BIRD number is exactly what the Phase 6
+control retracted. Nine days later it was sitting in the two places a reader looks
+first, in a README whose subject is that retraction.
+
+### What the re-grade says
+
+Applying a grader change to finished work costs no GPU: the results files hold
+the SQL, so the queries can simply be run again. `eval/regrade.py` does that.
+
+Demo set, all six strategies, 132 rows:
+
+| strategy | gen was | gen now | final was | final now | moved |
+|---|---|---|---|---|---|
+| `direct` | 90.9% | 90.9% | 95.5% | 95.5% | 0 |
+| `parallel` | 90.9% | 90.9% | 95.5% | 95.5% | 0 |
+| `eval_optimize` | 90.9% | 90.9% | 95.5% | 95.5% | 0 |
+| `chain` | 50.0% | 50.0% | 68.2% | 68.2% | 0 |
+| `orchestrator` | 40.9% | 40.9% | 45.5% | 45.5% | 0 |
+| `react` | 4.5% | 4.5% | 81.8% | 81.8% | 0 |
+
+**No grade moved.** The demo-set numbers stand exactly as published.
+
+<!-- ─── OPEN: the BIRD re-grade ────────────────────────────────────────────
+     Not run yet. bird_results_3b.json and bird_results_7b.json are Kaggle
+     output and are not in the repository, and the re-grade needs the BIRD
+     databases from dev.zip.
+
+         python -m aqueduct.eval.regrade \
+             --results data/bird/bird_results_7b.json \
+             --databases <directory of .sqlite files>
+
+     Fill in the final EX column when it runs. gen EX will report as not
+     re-gradable: those files predate draft_sql.
+─────────────────────────────────────────────────────────────────────────── -->
+
+**BIRD, 7B and 3B: not yet re-graded.** What each outcome would mean is written
+down here first, so the number cannot be read as favourably as it happens to
+land:
+
+| if | then |
+|---|---|
+| no grade moves | Phase 6 stands as published, and the ordering rule never bound on this benchmark |
+| a few move | those numbers are corrected here and in the README, with the size of the correction stated beside them |
+| many move | final EX is corrected, but **gen EX cannot be**, and the Phase 6 comparison has to be re-run before it can be quoted again |
+
+The third outcome is the one to watch for, and it is the direct cost of not
+having stored the draft query.
+
+There is a reason to expect the first: most BIRD ranking questions carry a
+`LIMIT`, so a prediction that drops `ORDER BY` usually returns a different set of
+rows and failed already. That is a reason to expect a small number. It is not a
+reason to skip measuring it — the 41-point gap also had a plausible story
+attached.
+
+### Two more bugs, and a change in how they were found
+
+That is eight instrumentation bugs across the project, against zero found in the
+agent logic. The grader and the sampler are the new ones. The missing `draft_sql`
+is a gap in the record rather than a bug, and the README table is a reporting
+error.
+
+The pattern holds, with one change worth noting. Every earlier bug was caught by
+measuring something a second way and noticing the two answers disagreed. These
+two were caught by reading the code against what the documentation claimed it did
+— D6 and the `stratified_sample` docstring both described behaviour the code did
+not have. That is a far cheaper check than a control run, and in seven phases it
+had never been done.
+
+It is not a replacement for measuring, though, and this phase demonstrated that
+on itself: the first account of the sampler bug was wrong, and what corrected it
+was measuring, not re-reading.
+
+**Also fixed, being small.** A fresh clone could not run the tests — `demo.db` is
+gitignored and nothing seeded it, so `pytest` failed before an assertion ran. The
+Kaggle notebook cloned an unpinned branch, so no sweep could be tied to a
+revision of the code; it now checks out a named commit and prints the SHA either
+way. D6 claimed a float tolerance of 1e-6 that the code does not implement — it
+rounds to six decimal places, and `0.4999995` and `0.5000004` are 9e-7 apart and
+compare unequal. The behaviour is kept, the description corrected.
+
+**Status.** Phase 7 complete except the BIRD re-grade. 188 tests, up from 128.
+No agent logic was touched and no conclusion has changed: the demo-set numbers
+are confirmed unmoved, and the BIRD numbers are pending one offline pass that
+costs no GPU.

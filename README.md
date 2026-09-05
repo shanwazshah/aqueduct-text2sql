@@ -127,10 +127,14 @@ flagged output aliases, string literals, type names and function names as
 nonexistent columns — every one on a *correct* query, and each would have
 triggered a pointless repair.
 
-**The evaluation code is tested adversarially too.** The grader had two false-pass
-bugs before it had a single user: both attempts to make column order irrelevant
-scored `(min=5, max=10)` and `(min=10, max=5)` as identical. It now compares
-positionally, exactly as BIRD's and Spider's official scripts do.
+**The evaluation code is tested adversarially too.** The grader has had three
+false-pass bugs. Two were before it had a single user: both attempts to make
+column order irrelevant scored `(min=5, max=10)` and `(min=10, max=5)` as
+identical, so it now compares positionally, exactly as BIRD's and Spider's
+official scripts do. The third survived to Phase 7 — row order was relaxed
+whenever the *prediction* omitted `ORDER BY`, so a prediction could opt out of
+the check by not sorting. Order-sensitivity is now decided by the reference
+alone.
 
 **Generation is measured separately from rescue.** Each result records the
 strategy's raw draft graded *before* the repair layer touches it. Without that
@@ -145,13 +149,18 @@ Full reasoning, including approaches that were tried and dropped:
 
 ## What I would tell you in review
 
-Six instrumentation bugs were found over this project. Zero bugs were found in
+Eight instrumentation bugs were found over this project. Zero bugs were found in
 the agent logic.
 
 **The measuring apparatus was consistently less reliable than the thing being
-measured** — and every one of those bugs flattered the result. None was caught by
-reading the code more carefully; each was caught by measuring the same thing a
-second way.
+measured.** Seven of the eight flattered the result. The eighth — a sampler that
+under-sampled whichever database sorted last — skewed the question set in a
+direction I have not measured, which is its own kind of problem.
+
+The first six were caught by measuring the same thing a second way and noticing
+the two answers disagreed; not one was caught by reading the code. The last two
+were caught the opposite way, by reading the code against what the documentation
+claimed it did — a far cheaper check that in seven phases I had never run.
 
 Two numbers reached a written conclusion before being caught. The first was
 `react`'s original 95.5%: before the tool-call bug was found it generated nothing
