@@ -9,10 +9,11 @@ the same answer.
 Two judgement calls, both of which matter and neither of which is obvious:
 
   * **Column order is ignored, row order is not — unless the question never
-    asked for an order.** A query with `ORDER BY` is making a claim about
-    sequence and should be held to it. Without one, the database is free to
-    return rows however it likes, so comparing as sets is the only stable
-    choice.
+    asked for an order.** A reference query with `ORDER BY` is making a claim
+    about sequence, and a prediction is held to it whether or not it sorts. When
+    the reference does not sort, the database is free to return rows however it
+    likes, so comparing as sets is the only stable choice — and a prediction that
+    sorts anyway is not punished for it.
   * **Numbers are compared with a tolerance.** `AVG` over floats can differ in
     the last bits between two algebraically identical queries. Failing a correct
     query over 1e-9 would be measuring floating point, not SQL.
@@ -113,7 +114,13 @@ def execution_accuracy(
     if not predicted.ok:
         return Grade(False, f"query failed: {predicted.error}", gold_rows=gold.row_count)
 
-    ordered = wants_order(gold_sql) and wants_order(predicted_sql)
+    # Order-sensitivity is a property of the *reference*, not of the prediction.
+    # This used to be `wants_order(gold) and wants_order(predicted)`, which let a
+    # prediction opt out of the check simply by omitting ORDER BY: a gold query
+    # sorting by salary and a prediction with no sort at all returned the same
+    # rows in a different order and scored `match`. The error ran in the
+    # flattering direction, which is the one to be suspicious of.
+    ordered = wants_order(gold_sql)
     got = normalise_rows(predicted, ordered)
     want = normalise_rows(gold, ordered)
 

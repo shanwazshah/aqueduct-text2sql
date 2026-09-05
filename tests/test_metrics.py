@@ -121,3 +121,46 @@ def test_unrunnable_prediction_is_scored_not_crashed():
     )
     assert not grade.correct
     assert "query failed" in grade.reason
+
+
+# ── row ordering, end to end ─────────────────────────────────────────
+#
+# These pin the false pass found in the Phase 7 audit. Order-sensitivity is
+# decided by the reference query alone. The previous rule ANDed the two, so a
+# prediction could opt out of the ordering check by simply not sorting — and
+# every such escape scored in the flattering direction.
+
+SORTED_GOLD = "SELECT name, salary FROM employees ORDER BY salary DESC"
+
+
+def test_prediction_that_drops_order_by_is_not_a_match():
+    """The regression. Same rows, no sort, was scored `match`."""
+    grade = execution_accuracy("SELECT name, salary FROM employees", SORTED_GOLD)
+    assert not grade.correct, "a prediction may not opt out of the ordering check"
+    assert grade.reason == "same row count, different values"
+
+
+def test_prediction_sorted_the_wrong_way_is_not_a_match():
+    grade = execution_accuracy(
+        "SELECT name, salary FROM employees ORDER BY salary ASC", SORTED_GOLD
+    )
+    assert not grade.correct
+
+
+def test_prediction_matching_the_reference_order_is_a_match():
+    grade = execution_accuracy(SORTED_GOLD, SORTED_GOLD)
+    assert grade.correct, grade.reason
+
+
+def test_unsorted_reference_does_not_punish_a_sorted_prediction():
+    """The other direction, which the fix must not break.
+
+    When the reference does not sort, the question did not ask for an order, so
+    a prediction that sorts anyway is still right. Enforcing order here would
+    trade a false pass for a false failure.
+    """
+    grade = execution_accuracy(
+        "SELECT name FROM employees ORDER BY name",
+        "SELECT name FROM employees",
+    )
+    assert grade.correct, grade.reason
