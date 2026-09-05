@@ -50,6 +50,15 @@ class Row:
     repaired: bool = False
     agents: list[str] = field(default_factory=list)
 
+    # The draft query itself, not just whether it graded correct.
+    #
+    # `compare.py` has always stored this; this harness stored only the boolean,
+    # which means a grader change cannot be applied to a finished sweep. The
+    # gen EX column is the one every claim in the README rests on, so losing the
+    # ability to re-derive it offline costs a full GPU re-run. Defaulted, so
+    # results files written before this still load.
+    draft_sql: str = ""
+
 
 def load_rows(path: Path) -> dict[tuple[str, int], Row]:
     if not path.exists():
@@ -122,6 +131,7 @@ def run(
                     draft_correct=draft_grade.correct, reason=grade.reason,
                     sql=answer.sql, calls=answer.calls, seconds=perf_counter() - start,
                     repaired=answer.was_repaired, agents=answer.agents_used,
+                    draft_sql=draft,
                 )
             except Exception as e:
                 # A 500-question sweep must not die on one bad question.
