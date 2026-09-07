@@ -35,9 +35,11 @@ def test_unknown_strategy_is_rejected():
         get_strategy("does-not-exist")
 
 
-def test_all_six_strategies_are_registered():
+def test_every_strategy_is_registered():
+    """Six from the notebooks, plus Phase 9's agent and the control it must beat."""
     assert set(STRATEGIES) == {
         "direct", "react", "chain", "parallel", "eval_optimize", "orchestrator",
+        "deep", "deep_seeded", "self_consistency",
     }
 
 

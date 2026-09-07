@@ -40,9 +40,15 @@ class StrategyContext:
     # global setting.
     db_url: str | None = None
 
-    def client(self, role: str) -> LLMClient:
-        """A client for one agent role, sharing this run's usage counter."""
-        return LLMClient(role=role, usage=self.usage)
+    def client(self, role: str, temperature: float | None = None) -> LLMClient:
+        """A client for one agent role, sharing this run's usage counter.
+
+        `temperature` is only passed by strategies that sample deliberately -
+        self-consistency needs variation, and the response cache stores nothing
+        above temperature 0, so those calls are genuinely repeated rather than
+        served from disk.
+        """
+        return LLMClient(role=role, usage=self.usage, temperature=temperature)
 
 
 @dataclass
