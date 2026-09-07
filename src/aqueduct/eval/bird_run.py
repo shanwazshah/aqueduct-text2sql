@@ -18,6 +18,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from time import perf_counter
 
+from ..agents.memory import ErrorMemory
 from ..crew import Crew, RepairMode
 from ..strategies import STRATEGIES
 from .bird import (
@@ -59,6 +60,15 @@ class Row:
     # results files written before this still load.
     draft_sql: str = ""
 
+    # Phase 8. `memory` says which arm this row belongs to, so a results file is
+    # self-describing about a variable that changes the result, rather than
+    # relying on its filename surviving. The other two are the metadata that
+    # tells a +0.0 apart from a memory that never fired - Phase 7's rule was to
+    # check the metadata rather than the score.
+    memory: bool = False
+    lessons_recalled: int = 0
+    lesson_learned: bool = False
+
 
 def load_rows(path: Path) -> dict[tuple[str, int], Row]:
     if not path.exists():
@@ -81,6 +91,16 @@ def save_rows(rows: dict[tuple[str, int], Row], path: Path) -> None:
     tmp.replace(path)  # atomic: a killed session cannot leave a half-written file
 
 
+def memory_path_for(results_path: Path, strategy: str) -> Path:
+    """Where one arm's lessons live.
+
+    Derived from the results path, so the 3B and 7B sweeps - which already write
+    to different files - get separate memories for free, and the model control
+    cannot inherit the run before it.
+    """
+    return results_path.with_name(f"{results_path.stem}.{strategy}.memory.json")
+
+
 def run(
     questions: list[BirdQuestion],
     strategy_names: list[str],
@@ -88,6 +108,7 @@ def run(
     *,
     repair: RepairMode = RepairMode.EXECUTION,
     path: Path = RESULTS_PATH,
+    memory: bool = False,
 ) -> dict[tuple[str, int], Row]:
     rows = load_rows(path)
 
@@ -95,6 +116,19 @@ def run(
         pending = [q for q in questions if (name, q.question_id) not in rows]
         print(f"\n{'=' * 70}\n  {name}   {len(pending)} of {len(questions)} remaining\n{'=' * 70}",
               flush=True)
+
+        # One memory per strategy. Sharing it would let a lesson `direct`
+        # learned improve `chain`, and the difference between those two is the
+        # entire comparison. `ablation.py` has isolated per arm since Phase 2;
+        # this harness had no memory at all until now.
+        #
+        # It persists across a resume on purpose: a sweep that dies at question
+        # 300 should carry on with what it learned, not start blank. Delete the
+        # file to start an arm clean.
+        arm_memory = ErrorMemory(memory_path_for(path, name)) if memory else None
+        if memory:
+            print(f"  memory ON - {len(arm_memory)} lessons carried in "
+                  f"({arm_memory.path.name})", flush=True)
 
         for i, question in enumerate(pending, 1):
             start = perf_counter()
@@ -118,7 +152,8 @@ def run(
                     repair=repair,
                     schema=schema_for(db_url),
                     db_url=db_url,
-                    use_memory=False,
+                    use_memory=memory,
+                    memory=arm_memory,
                 )
                 answer = crew.ask(question.prompt())
                 grade = execution_accuracy(answer.sql, question.gold_sql, db_url=db_url)
@@ -131,7 +166,9 @@ def run(
                     draft_correct=draft_grade.correct, reason=grade.reason,
                     sql=answer.sql, calls=answer.calls, seconds=perf_counter() - start,
                     repaired=answer.was_repaired, agents=answer.agents_used,
-                    draft_sql=draft,
+                    draft_sql=draft, memory=memory,
+                    lessons_recalled=answer.lessons_recalled,
+                    lesson_learned=answer.lesson_learned,
                 )
             except Exception as e:
                 # A 500-question sweep must not die on one bad question.
@@ -219,6 +256,10 @@ def main() -> None:
     parser.add_argument("--repair", default=RepairMode.EXECUTION.value)
     parser.add_argument("--databases", default=str(BIRD_DIR))
     parser.add_argument("--questions", default=None)
+    parser.add_argument(
+        "--memory", action="store_true",
+        help="Carry verified repairs forward into later prompts (the Phase 8 arm).",
+    )
     parser.add_argument("--report-only", action="store_true")
     args = parser.parse_args()
 
@@ -244,7 +285,8 @@ def main() -> None:
     if missing:
         print(f"WARNING missing {len(missing)} databases: {', '.join(missing)}")
 
-    rows = run(questions, names, databases, repair=RepairMode(args.repair))
+    rows = run(questions, names, databases, repair=RepairMode(args.repair),
+               memory=args.memory)
     print(report(rows))
 
 

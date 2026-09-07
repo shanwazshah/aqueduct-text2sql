@@ -72,6 +72,14 @@ class Answer:
     explanation: str | None = None
     lesson_learned: bool = False
 
+    # How many past lessons the Writer's prompt actually carried.
+    #
+    # Without this, a memory ablation that scores +0.0 is ambiguous between
+    # "memory does not help" and "memory never fired" - and those call for
+    # opposite next steps. Phase 7's rule was to check the metadata rather than
+    # the score; this is the metadata for Phase 8.
+    lessons_recalled: int = 0
+
     # Calls made answering THIS question. `usage` is a running total that may be
     # shared across a whole sweep, so reading `usage.calls` per answer sums
     # cumulatively and inflates cost. That bug put 11.5 calls/question against a
@@ -184,6 +192,10 @@ class Crew:
 
         trace = trace if trace is not None else Trace(question)
         calls_before = self.usage.calls
+        # `recall` is called for the count and `render_for_prompt` for the text.
+        # It runs twice over at most 200 in-memory lessons, which is free next to
+        # the model call it is about to feed.
+        recalled = self.memory.recall(question) if self.use_memory else []
         memory_context = (
             self.memory.render_for_prompt(question) if self.use_memory else ""
         )
@@ -261,6 +273,7 @@ class Crew:
             attempts=attempts,
             calls=self.usage.calls - calls_before,
             routed=routed,
+            lessons_recalled=len(recalled),
         )
 
         answer.lesson_learned = self._learn(
