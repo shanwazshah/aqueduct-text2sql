@@ -1042,3 +1042,112 @@ Both are now cheap to verify, and both should be run before any future ablation.
 **Status.** M0 answered, at no GPU cost, with a result better than the one the
 sweep would have produced. 198 tests, up from 188. The retrieval fix and its
 measurement are M1.
+
+## 2026-09-07 — Phase 8-M1: retrieval fixed, and a second reason not to run the sweep
+
+M0 established that the error memory could not fire: its retrieval key was 80%
+repair-loop boilerplate, so every Jaccard score was suppressed by construction.
+M1 fixes that and scopes lessons to the database they are about. Both changes
+are small. Neither was measured on a GPU, and the reason is the finding.
+
+### What changed
+
+**The retrieval key is the question, and only the question.** `Lesson.keywords`
+was `question + error`. The error is what the lesson *says*; `render` is where
+that belongs. What the lesson is *about* is the question.
+
+**Lessons are scoped to a database.** `Lesson` gains `db_id`, and `recall`
+filters on it exactly rather than scoring it. A correction is a statement about
+one schema — `department_id` is the right column *in the demo database* — and
+there is no relevance score at which a Formula 1 column name helps with a
+question about superheroes. BIRD gives every question its own database, so
+without this the store is eleven schemas deep with no way to tell them apart.
+
+`Crew` gains `memory_scope`, and `bird_run` passes `question.db_id`.
+
+### Retrieval reach, on the real 500 questions
+
+For each mini-dev question, how many *other* questions' lessons it would recall.
+This is a ceiling: it assumes every question has already produced a lesson.
+
+| retrieval key | scope | questions reaching ≥1 lesson | cross-database |
+|---|---|---|---|
+| question + error (M0) | global | 14 / 500 (2.8%) | 0 |
+| question + error (M0) | per-database | 14 / 500 (2.8%) | 0 |
+| **question only (M1)** | global | 304 / 500 (60.8%) | 20 |
+| **question only (M1)** | **per-database** | **299 / 500 (59.8%)** | **0** |
+
+Retrieval reach goes up 21×. Scoping costs five questions of reach and removes
+twenty cross-database recalls, which are the recalls most likely to do harm — a
+lesson from the wrong schema arrives with exactly the same authority as one from
+the right schema.
+
+### The ceiling is not the number that matters
+
+A lesson only exists if a repair verifiably worked: the first attempt failed to
+execute, the last succeeded, and the SQL changed. On the demo set that fires at
+very different rates per strategy:
+
+| strategy | questions repaired |
+|---|---|
+| `direct` | 1 / 22 (4.5%) |
+| `parallel`, `eval_optimize` | 1 / 22 (4.5%) |
+| `orchestrator` | 3 / 22 (13.6%) |
+| `chain` | 8 / 22 (36.4%) |
+| `react` | 18 / 22 (81.8%) |
+
+Walking a sweep in question order, where a question can only recall lessons from
+earlier questions on the same database, and varying the rate at which questions
+produce lessons:
+
+| lesson production rate | n=100 | n=500 |
+|---|---|---|
+| 5% | 1.2% | 4.2% |
+| 10% | 2.4% | 6.8% |
+| 20% | 5.2% | 12.4% |
+| 40% | 8.4% | 21.8% |
+| 100% (the ceiling above) | 18.0% | 39.6% |
+
+**`direct` repairs 4.5% of questions. At n=100 that puts a lesson in front of
+roughly one question in a hundred.** The arm the plan called for — `direct`,
+100 questions, memory on versus off — would still be a null measurement after
+M1. Not because retrieval is broken any more, but because there is nothing to
+retrieve.
+
+The binding constraint moved. It was the retrieval key; it is now lesson supply,
+and supply is a property of how often repair succeeds, which is not something a
+memory change can affect.
+
+### What this means for the sweep
+
+Two conditions have to hold before an arm is worth GPU time. M0 added the first;
+this entry adds the second:
+
+1. the mechanism fires at a measurable rate — checked offline, on the real
+   questions, before booking a session;
+2. the two arms send different prompts — checked by comparing cache keys;
+3. **enough questions are actually affected for a difference to be visible.**
+
+On `direct` at n=100, condition 3 fails at about 1%. The honest options are to
+run the arm where lessons accumulate — `chain` repairs eight times as often as
+`direct` — and at n=500 rather than n=100, or not to run it at all and say why.
+
+Running it on `direct` at n=100 and reporting +0.0 would be a third headline
+number that is really a property of the test setup, and this project has already
+retracted two.
+
+### What is not claimed
+
+That memory does not help. That question is still unasked. What is now true is
+that the mechanism works — a lesson recorded from *"Which department does each
+employee belong to?"* is recalled for *"Which department does each employee work
+in?"*, does not cross to another database, and is still not served to a question
+about product costs. Verified end to end against the 3B model, not only in
+tests.
+
+Whether it is *worth* anything needs an arm where it fires often enough to
+measure, and that is a sample-size decision rather than a code one.
+
+**Status.** M1 complete. Retrieval works, scoping works, 206 tests. The sweep is
+deliberately not run: on the arm the plan specified it would measure nothing, and
+the offline check that establishes this cost no GPU and about a minute.

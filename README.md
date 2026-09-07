@@ -100,11 +100,20 @@ It helps most exactly where generation is weakest — a pipeline emits more
 This held in every phase, on both benchmarks, at both model sizes.
 
 **Model self-critique, by contrast, bought +0.0 for double the calls**, measured
-twice. And the error memory — lessons carried from a verified repair into later
-prompts — turned out never to fire at all: its retrieval key is 80% repair-loop
-boilerplate that no question contains, so across 462 demo-set question pairs it
-recalls zero times. That was found without spending a GPU hour, by checking
-whether the mechanism ran before measuring what it was worth. Asked to review `SELECT dept FROM employees` having been told the column is
+twice.
+
+**The error memory turned out never to have fired at all.** Lessons carried from
+a verified repair into later prompts — except the retrieval key was 80%
+repair-loop boilerplate that no question can contain, so across 462 demo-set
+question pairs it recalled zero times, and had been inert since it was written.
+Keying on the question instead takes retrieval reach on the real BIRD questions
+from 2.8% to 59.8%.
+
+It is still not measured, and that is the more useful half. A lesson only exists
+where a repair worked, and `direct` repairs 4.5% of questions — so on the arm
+the plan called for, a hundred questions with memory on and off, about one
+question in a hundred would ever see a lesson. Both facts cost no GPU: they came
+from checking whether the mechanism fires *before* measuring what it is worth. Asked to review `SELECT dept FROM employees` having been told the column is
 `department`, a 3B model returned `schema_ok: true, confidence: 0.9`.
 
 **The schema card.** Foreign keys listed explicitly, plus sample values for

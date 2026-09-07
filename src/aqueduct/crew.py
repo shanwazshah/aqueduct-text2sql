@@ -140,6 +140,7 @@ class Crew:
         usage: Usage | None = None,
         memory: ErrorMemory | None = None,
         use_memory: bool = True,
+        memory_scope: str = "",
         router=None,
         db_url: str | None = None,
     ):
@@ -156,6 +157,10 @@ class Crew:
         self.usage = usage or Usage()
         self.schema = schema or load_schema(db_url)
         self.use_memory = use_memory
+        # Which database the memory's lessons are about. BIRD gives every
+        # question its own schema, so a lesson is only valid within one of them.
+        # Empty means "the one database there is" - the demo set and the CLI.
+        self.memory_scope = memory_scope
         self.memory = memory if memory is not None else ErrorMemory()
 
         if strategy is None:
@@ -195,9 +200,13 @@ class Crew:
         # `recall` is called for the count and `render_for_prompt` for the text.
         # It runs twice over at most 200 in-memory lessons, which is free next to
         # the model call it is about to feed.
-        recalled = self.memory.recall(question) if self.use_memory else []
+        recalled = (
+            self.memory.recall(question, db_id=self.memory_scope)
+            if self.use_memory else []
+        )
         memory_context = (
-            self.memory.render_for_prompt(question) if self.use_memory else ""
+            self.memory.render_for_prompt(question, db_id=self.memory_scope)
+            if self.use_memory else ""
         )
 
         # Generation is the strategy's job; execution and repair stay here, so a
@@ -371,7 +380,10 @@ class Crew:
         if not self.use_memory or original_error is None or not final.result.ok:
             return False
         return (
-            self.memory.record(question, original_sql, original_error, final.sql)
+            self.memory.record(
+                question, original_sql, original_error, final.sql,
+                db_id=self.memory_scope,
+            )
             is not None
         )
 

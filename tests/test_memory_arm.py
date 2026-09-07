@@ -147,3 +147,115 @@ def test_results_files_from_before_phase_8_still_load():
     assert row.memory is False
     assert row.lessons_recalled == 0
     assert row.lesson_learned is False
+
+
+# ── M1: the retrieval key, and per-database scope ────────────────────
+
+REAL_ERROR = (
+    "The database rejected the query: no such column: dept\n\n"
+    "Checked against the real schema:\n"
+    "  - column 'dept' does not exist. Did you mean 'department_id'?"
+)
+
+
+def test_the_retrieval_key_is_the_question_not_the_error(tmp_path):
+    """M0's finding, pinned.
+
+    The error is repair-loop boilerplate. Twelve of its words could never appear
+    in a question, so including them only inflated the Jaccard denominator.
+    """
+    memory = ErrorMemory(tmp_path / "m.json")
+    memory.record("Which department does each employee belong to?",
+                  "SELECT dept FROM employees", REAL_ERROR,
+                  "SELECT department_id FROM employees")
+
+    key = memory.lessons[0].keywords
+    assert key == {"department", "employee", "belong"}
+    for boilerplate in ("database", "rejected", "schema", "checked", "exist"):
+        assert boilerplate not in key
+
+
+def test_a_near_identical_question_now_recalls(tmp_path):
+    """The exact pair M0 measured at 0.125 against a 0.25 threshold."""
+    memory = ErrorMemory(tmp_path / "m.json")
+    memory.record("Which department does each employee belong to?",
+                  "SELECT dept FROM employees", REAL_ERROR,
+                  "SELECT department_id FROM employees")
+
+    assert memory.recall("Which department does each employee work in?")
+
+
+def test_an_unrelated_question_still_recalls_nothing(tmp_path):
+    """The fix must not turn a silent memory into an indiscriminate one."""
+    memory = ErrorMemory(tmp_path / "m.json")
+    memory.record("Which department does each employee belong to?",
+                  "SELECT dept FROM employees", REAL_ERROR,
+                  "SELECT department_id FROM employees")
+
+    assert memory.recall("What is the average unit cost of products by category?") == []
+
+
+def test_a_lesson_does_not_cross_databases(tmp_path):
+    """A correction is a statement about one schema."""
+    memory = ErrorMemory(tmp_path / "m.json")
+    memory.record("Which department does each employee belong to?",
+                  "SELECT dept FROM employees", REAL_ERROR,
+                  "SELECT department_id FROM employees", db_id="company")
+
+    assert memory.recall("Which department does each employee work in?", db_id="company")
+    assert memory.recall("Which department does each employee work in?", db_id="school") == []
+
+
+def test_scope_is_exact_not_a_ranking_signal(tmp_path):
+    """No score should let a Formula 1 column name reach a superhero question."""
+    memory = ErrorMemory(tmp_path / "m.json")
+    memory.record("Which department does each employee belong to?",
+                  "SELECT dept FROM employees", REAL_ERROR,
+                  "SELECT department_id FROM employees", db_id="formula_1")
+
+    identical = memory.recall("Which department does each employee belong to?",
+                              min_relevance=0.0, db_id="superhero")
+    assert identical == []
+
+
+def test_the_same_lesson_on_two_databases_is_not_a_duplicate(tmp_path):
+    memory = ErrorMemory(tmp_path / "m.json")
+    a = memory.record("q", "SELECT dept FROM t", REAL_ERROR, "SELECT d FROM t", db_id="one")
+    b = memory.record("q", "SELECT dept FROM t", REAL_ERROR, "SELECT d FROM t", db_id="two")
+    c = memory.record("q", "SELECT dept FROM t", REAL_ERROR, "SELECT d FROM t", db_id="one")
+    assert a is not None and b is not None
+    assert c is None, "a repeat within one database is still a duplicate"
+
+
+def test_memory_files_written_before_m1_still_load(tmp_path):
+    import json
+    path = tmp_path / "m.json"
+    path.write_text(json.dumps([{
+        "question": "Which department does each employee belong to?",
+        "broken_sql": "SELECT dept FROM employees",
+        "error": REAL_ERROR,
+        "fixed_sql": "SELECT department_id FROM employees",
+        "recorded_at": "2026-09-01T00:00:00+00:00",
+    }]), encoding="utf-8")
+
+    memory = ErrorMemory(path)
+    assert len(memory) == 1
+    assert memory.lessons[0].db_id == ""
+
+
+def test_the_crew_scopes_its_memory_to_its_database(tmp_path):
+    memory = ErrorMemory(tmp_path / "m.json")
+    memory.record("How many employees are in the sales department?",
+                  "SELECT COUNT(*) FROM employees WHERE dept = 'Sales'",
+                  REAL_ERROR, "SELECT COUNT(*) FROM employees", db_id="company")
+
+    question = "How many employees are in the sales department?"
+    same = Crew(strategy=StubStrategy("SELECT COUNT(*) FROM employees"),
+                repair=RepairMode.NONE, memory=memory, use_memory=True,
+                memory_scope="company").ask(question)
+    other = Crew(strategy=StubStrategy("SELECT COUNT(*) FROM employees"),
+                 repair=RepairMode.NONE, memory=memory, use_memory=True,
+                 memory_scope="elsewhere").ask(question)
+
+    assert same.lessons_recalled == 1
+    assert other.lessons_recalled == 0

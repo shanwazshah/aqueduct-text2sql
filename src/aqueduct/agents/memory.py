@@ -48,6 +48,16 @@ class Lesson:
         default_factory=lambda: datetime.now(timezone.utc).isoformat(timespec="seconds")
     )
 
+    # Which database this lesson is about. A correction is a statement about one
+    # schema: `department_id` is the right column *in the demo database*, and
+    # serving that to a question about Formula 1 is noise with authority. BIRD
+    # gives every question its own database, so without this the store is 11
+    # schemas deep and retrieval has no way to tell them apart.
+    #
+    # Empty means "the one database there is", which is the demo set and the
+    # CLI. Defaulted, so memory files written before M1 still load.
+    db_id: str = ""
+
     def render(self) -> str:
         """Render as a rule, not as an example.
 
@@ -65,7 +75,25 @@ class Lesson:
 
     @property
     def keywords(self) -> set[str]:
-        return _keywords(f"{self.question} {self.error}")
+        """The retrieval key: the question, and only the question.
+
+        This used to be `question + error`, and M0 measured what that cost.
+        The error is whatever `Crew._feedback` produced, which is repair-loop
+        boilerplate - "the database rejected the query", "checked against the
+        real schema", "does not exist". On a representative lesson that is
+        twelve of fifteen keywords, and not one of them can appear in a user's
+        question.
+
+        Those twelve could never reach the numerator of the Jaccard score, and
+        they sat in the denominator, so every score was suppressed by
+        construction. Two questions differing by a single word scored 0.125
+        against a 0.25 threshold. Across 462 demo-set question pairs the store
+        recalled zero times, and the feature had been inert since Phase 2.
+
+        A lesson is retrieved by what it is *about*. The error text is what the
+        lesson *says*, and `render` is where that belongs.
+        """
+        return _keywords(self.question)
 
 
 class ErrorMemory:
@@ -94,7 +122,14 @@ class ErrorMemory:
         except OSError:
             pass
 
-    def record(self, question: str, broken_sql: str, error: str, fixed_sql: str) -> Lesson | None:
+    def record(
+        self,
+        question: str,
+        broken_sql: str,
+        error: str,
+        fixed_sql: str,
+        db_id: str = "",
+    ) -> Lesson | None:
         """Store a correction, if it is worth storing.
 
         Rejected: fixes that changed nothing, and duplicates of a lesson already
@@ -108,11 +143,13 @@ class ErrorMemory:
             broken_sql=broken_sql.strip(),
             error=error.strip(),
             fixed_sql=fixed_sql.strip(),
+            db_id=db_id,
         )
 
         for existing in self.lessons:
             if (
-                existing.error == lesson.error
+                existing.db_id == lesson.db_id
+                and existing.error == lesson.error
                 and _one_line(existing.broken_sql) == _one_line(lesson.broken_sql)
             ):
                 return None
@@ -123,7 +160,13 @@ class ErrorMemory:
         self.save()
         return lesson
 
-    def recall(self, question: str, k: int = 3, min_relevance: float = 0.25) -> list[Lesson]:
+    def recall(
+        self,
+        question: str,
+        k: int = 3,
+        min_relevance: float = 0.25,
+        db_id: str = "",
+    ) -> list[Lesson]:
         """Return the k most relevant past corrections.
 
         Relevance is Jaccard overlap, not raw shared-word count. The first
@@ -145,6 +188,12 @@ class ErrorMemory:
 
         scored = []
         for i, lesson in enumerate(self.lessons):
+            # A lesson about another schema cannot be relevant, however well its
+            # words happen to line up. This is an exact check, not a ranking
+            # signal - there is no score at which a Formula 1 column name helps
+            # with a question about superheroes.
+            if lesson.db_id != db_id:
+                continue
             overlap = wanted & lesson.keywords
             union = wanted | lesson.keywords
             relevance = len(overlap) / len(union) if union else 0.0
@@ -155,9 +204,9 @@ class ErrorMemory:
         scored.sort(key=lambda s: (-s[0], -s[1]))
         return [lesson for _, _, lesson in scored[:k]]
 
-    def render_for_prompt(self, question: str, k: int = 3) -> str:
+    def render_for_prompt(self, question: str, k: int = 3, db_id: str = "") -> str:
         """Relevant lessons, formatted for a prompt. Empty if none apply."""
-        lessons = self.recall(question, k)
+        lessons = self.recall(question, k, db_id=db_id)
         if not lessons:
             return ""
         body = "\n".join(l.render() for l in lessons)

@@ -154,6 +154,7 @@ def run(
                     db_url=db_url,
                     use_memory=memory,
                     memory=arm_memory,
+                    memory_scope=question.db_id,
                 )
                 answer = crew.ask(question.prompt())
                 grade = execution_accuracy(answer.sql, question.gold_sql, db_url=db_url)
