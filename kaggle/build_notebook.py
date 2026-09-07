@@ -318,7 +318,7 @@ from aqueduct.crew import RepairMode
 STRATEGIES = ["direct", "chain", "orchestrator"]
 
 
-def run_for_model(model: str, out_path: str):
+def run_for_model(model: str, out_path: str, strategies=None, questions=None):
     \"\"\"Point the whole stack at `model` and sweep the sample.\"\"\"
     p = subprocess.Popen(["ollama", "pull", model],
                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
@@ -338,7 +338,11 @@ def run_for_model(model: str, out_path: str):
     importlib.reload(aqueduct.llm.client)
     print("model now:", aqueduct.config.settings.model_sql, flush=True)
 
-    rows = run(sample, STRATEGIES, databases,
+    # Defaults are the Phase 6 sweep, so the cells above are unchanged.
+    # Phase 9 passes its own four arms and the challenging stratum.
+    rows = run(questions if questions is not None else sample,
+               strategies if strategies is not None else STRATEGIES,
+               databases,
                repair=RepairMode.EXECUTION, path=pathlib.Path(out_path))
     print(report(rows))
     return rows
@@ -415,6 +419,121 @@ if len(summary) == 2:
     print("\\nA gap that shrinks with scale supports the capability-threshold")
     print("reading. A gap that is already small at 3B means the earlier demo-set")
     print("result was overfit to easy questions.")
+"""),
+
+    md("""
+## 11 · Phase 9 — the deep agent, on the challenging stratum
+
+**Run this as its own session.** The Phase 6 sweeps and this section together
+exceed the 12-hour cap.
+
+It still needs the setup, so the order is: **run cells 1 through 8** (install,
+Ollama, model, smoke test), **then 10** (BIRD data), **then 12 and 14**
+(questions, databases, the harness) — and **skip the two sweep cells under
+sections 8 and 9**, which are the Phase 6 run. Then run the two cells below.
+
+Persistence is on, so `/kaggle/working` survives between sessions: run one part,
+download its JSON, run the other next time.
+
+Four arms on all 102 challenging questions at 7B:
+
+| arm | calls/question | what it is |
+|---|---|---|
+| `direct` | 1 | the baseline that has won every phase |
+| `self_consistency` | 5 | the cost-matched control - five samples, voted |
+| `deep` | ~9 | plans, inspects, tests, submits |
+| `deep_seeded` | ~10 | the same, starting from `direct`'s draft |
+
+Roughly 2,500 calls, about seven hours at the throughput cells 5-10 measure.
+
+`self_consistency` is the arm that makes this worth running at all. A nine-call
+strategy's baseline is not `direct` at one call - it is whatever else nine calls
+buy. Without it, a win for the deep agent cannot be told apart from a win for
+its budget.
+
+The challenging stratum is where the only positive signal for decomposition has
+ever appeared: `chain` beat `direct` 30% to 25% there, on six questions against
+five. 102 questions is the sample size that settles it.
+
+**The four possible outcomes are written down in `docs/EXPERIMENTS.md` before
+this runs.** Read them before you read the numbers.
+"""),
+    code("""
+challenging = [q for q in questions if q.difficulty == "challenging"]
+print(f"challenging questions: {len(challenging)}")
+
+missing = sorted({q.db_id for q in challenging} - set(databases))
+assert not missing, f"missing databases: {missing}"
+
+rows_deep = run_for_model(
+    "qwen2.5-coder:7b",
+    "/kaggle/working/bird_results_7b_challenging.json",
+    strategies=["direct", "self_consistency", "deep", "deep_seeded"],
+    questions=challenging,
+)
+"""),
+
+    md("""
+## 12 · Did the agent earn its calls?
+
+Accuracy next to cost, because that is the whole question.
+
+Plus the deep agent's own metadata: at 3B it chose `submit` once in ten
+questions, taking nine of its ten answers from the fallback instead. If that
+holds at 7B, the finding is about agent scaffolding rather than about
+Text-to-SQL, and the score is the less interesting half.
+"""),
+    code("""
+import json, pathlib
+
+f = pathlib.Path("/kaggle/working/bird_results_7b_challenging.json")
+if not f.exists():
+    print("not run yet")
+else:
+    raw = json.load(open(f))
+    print(f"BIRD challenging stratum, 7B - {len(raw)} rows\\n")
+    print(f"{'arm':<18}{'gen EX':>9}{'final EX':>10}{'calls/q':>9}"
+          f"{'s/q':>8}{'submitted':>12}{'n':>5}")
+    print("-" * 71)
+
+    baseline = None
+    for arm in ("direct", "self_consistency", "deep", "deep_seeded"):
+        subset = [r for r in raw if r["strategy"] == arm]
+        if not subset:
+            continue
+        n = len(subset)
+        gen = 100 * sum(1 for r in subset if r["draft_correct"]) / n
+        fin = 100 * sum(1 for r in subset if r["correct"]) / n
+        # `submit` reaches the trace only when the agent finished on purpose,
+        # rather than falling back to the last query that happened to run.
+        done = sum(1 for r in subset if "submit" in (r.get("agents") or []))
+        if arm == "direct":
+            baseline = gen
+        print(f"{arm:<18}{gen:>8.1f}%{fin:>9.1f}%"
+              f"{sum(r['calls'] for r in subset) / n:>9.1f}"
+              f"{sum(r['seconds'] for r in subset) / n:>8.1f}"
+              f"{done:>9}/{n:<3}{n:>5}")
+    print("-" * 71)
+
+    def gen_ex(arm):
+        subset = [r for r in raw if r["strategy"] == arm]
+        return (100 * sum(1 for r in subset if r["draft_correct"]) / len(subset)
+                if subset else None)
+
+    if baseline is not None:
+        print("\\ngeneration EX, against the baseline and against matched cost:")
+        for arm in ("self_consistency", "deep", "deep_seeded"):
+            g = gen_ex(arm)
+            if g is not None:
+                print(f"  {arm:<18}{g - baseline:>+7.1f} vs direct")
+        control = gen_ex("self_consistency")
+        if control is not None:
+            print()
+            for arm in ("deep", "deep_seeded"):
+                g = gen_ex(arm)
+                if g is not None:
+                    print(f"  {arm:<18}{g - control:>+7.1f} vs self_consistency"
+                          f"   <- the comparison that decides it")
 """),
 ]
 
