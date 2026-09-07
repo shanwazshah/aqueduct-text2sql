@@ -912,3 +912,133 @@ compare unequal. The behaviour is kept, the description corrected.
 No agent logic was touched and no conclusion has changed: the demo-set numbers
 are confirmed unmoved, and the BIRD numbers are pending one offline pass that
 costs no GPU.
+
+## 2026-09-07 — Phase 8-M0: the memory has never been able to fire
+
+The plan for this phase was one line and two GPU hours: `ErrorMemory` has existed
+since Phase 2, is switched off in every benchmark path, and its value has never
+been measured. Turn it on, sweep, compare.
+
+Building the arm properly showed the flag was never the interesting part. **The
+answer needed no GPU at all: on the demo set, across 462 question pairs, the
+memory recalls a lesson exactly zero times.** It has never contributed to a
+number in this project, and it could not have.
+
+### Why one line would not have done it
+
+`bird_run` constructs a `Crew` per question, and `ErrorMemory()` with no path
+resolves to one global file. Flipping `use_memory=True` would have meant `chain`
+inheriting every lesson `direct` learned — contaminating the exact comparison
+being made — and the 3B control inheriting the 7B run's lessons, which voids the
+control. A resumed sweep would also have carried different memory than a clean
+one.
+
+`--memory` is now off by default, with one `ErrorMemory` per results file and
+strategy. `ablation.py` has isolated per arm since Phase 2; this harness simply
+had no memory at all.
+
+### The metadata that made it visible
+
+`Answer` gained `lessons_recalled` and `Row` gained `memory`,
+`lessons_recalled` and `lesson_learned`. Phase 7's rule was to check the
+metadata rather than the score, and this is the case it was written for: a +0.0
+here is ambiguous between *memory does not help* and *memory never ran*, and only
+a recall count separates them.
+
+Wiring it up and running one live repair against the 3B model gave this:
+
+```
+attempt 1 failed : True | no such column: dept
+final ok         : True
+repaired         : True
+lesson recorded  : True
+lessons after    : 1
+
+related question -> lessons_recalled: 0
+```
+
+A lesson learned from *"Which department does each employee belong to?"* was not
+recalled for *"Which department does each employee work in?"* — two questions
+that differ by one word.
+
+### The mechanism
+
+`Lesson.keywords` is `_keywords(question + error)`, and `recall` scores Jaccard
+overlap against that set. The error is whatever `Crew._feedback` produced, which
+is repair-loop boilerplate:
+
+    The database rejected the query: no such column: dept
+
+    Checked against the real schema:
+      - column 'dept' does not exist. Did you mean 'department_id'?
+
+For that lesson:
+
+| | keywords |
+|---|---|
+| from the question | `belong`, `department`, `employee` |
+| from the error | `against`, `checked`, `column`, `database`, `dept`, `exist`, `not`, `query`, `real`, `rejected`, `schema`, `such` |
+
+**Twelve of the fifteen keywords come from the error, and not one of them can
+ever appear in a user's question.** They cannot contribute to the numerator, and
+they sit in the denominator, so every score is suppressed by construction. The
+near-identical question above scores 0.125 against a 0.25 threshold. On question
+keywords alone it scores 0.500.
+
+Across all 22 demo questions, every question against every other question's
+lesson:
+
+| retrieval key | pairs that recall |
+|---|---|
+| question + real repair-loop error (as implemented) | **0 / 462  (0.0%)** |
+| question + the short error the unit test uses | 4 / 462  (0.9%) |
+| question only | 18 / 462  (3.9%) |
+
+### Why the tests did not catch it
+
+`test_lesson_is_stored_and_recalled` passes, and it is not a bad test. It stores
+the error `"table 'staff' does not exist"` — four keywords, hand-written — and
+recalls against the *identical* question.
+
+Production stores twelve keywords of boilerplate and recalls against a different
+question. The test was written against a plausible error string rather than the
+one the system actually produces, and the gap between those two is the whole bug.
+That is a fixture-realism failure, and it is a different shape from the eight
+bugs before it: nothing here disagreed with anything. Every part worked, the test
+passed, and the feature was inert.
+
+### What follows
+
+**The prompts are byte-identical.** `render_for_prompt` returns an empty string
+when nothing is recalled, and `DirectStrategy` omits the section entirely when the
+context is empty. Verified: the memory-on and memory-off cache keys are the same
+hash. The arm would have hit the existing cache, returned the same answers,
+finished in minutes rather than hours, and reported +0.0 — a number produced
+entirely by arithmetic on identical inputs.
+
+**No published number is affected.** Memory is off in `bird_run`, `compare` and
+`routing`. It is on in `ablation.py` and in the CLI's default `Crew()`, and in
+both it was inert — so the Phase 2 ablation measured repair modes cleanly, which
+is what it claimed to.
+
+**What is not claimed.** None of this says whether memory would help. It says the
+question has not been asked yet. Reflexion's result is not disputed here; what is
+established is that this implementation cannot reproduce or refute it, because
+its retrieval key is 80% text that no question contains.
+
+### The decision this leaves
+
+The fix is small — score recall against the question keywords and keep the error
+for display only. It is also a design change, so it belongs to M1 rather than
+being smuggled into M0 and reported as though the original had been measured.
+
+Two things must be true before an arm is worth GPU time, and neither was:
+
+1. the mechanism fires at a measurable rate, checked offline first;
+2. the two arms send different prompts, checked by comparing cache keys.
+
+Both are now cheap to verify, and both should be run before any future ablation.
+
+**Status.** M0 answered, at no GPU cost, with a result better than the one the
+sweep would have produced. 198 tests, up from 188. The retrieval fix and its
+measurement are M1.

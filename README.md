@@ -100,7 +100,11 @@ It helps most exactly where generation is weakest — a pipeline emits more
 This held in every phase, on both benchmarks, at both model sizes.
 
 **Model self-critique, by contrast, bought +0.0 for double the calls**, measured
-twice. Asked to review `SELECT dept FROM employees` having been told the column is
+twice. And the error memory — lessons carried from a verified repair into later
+prompts — turned out never to fire at all: its retrieval key is 80% repair-loop
+boilerplate that no question contains, so across 462 demo-set question pairs it
+recalls zero times. That was found without spending a GPU hour, by checking
+whether the mechanism ran before measuring what it was worth. Asked to review `SELECT dept FROM employees` having been told the column is
 `department`, a 3B model returned `schema_ok: true, confidence: 0.9`.
 
 **The schema card.** Foreign keys listed explicitly, plus sample values for
