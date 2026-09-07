@@ -234,12 +234,13 @@ src/aqueduct/
 ├── llm/          one OpenAI-compatible client · disk cache · bounded types
 ├── agents/       writer · critic · fixer · memory
 ├── strategies/   direct · react · chain · parallel · eval_optimize · orchestrator
+│                 deep · deep_seeded · self_consistency
 ├── router.py     verification tiering, decided from the parsed SQL
-├── eval/         BIRD loader · execution-accuracy grader · sweeps · leaderboards
+├── eval/         BIRD loader · execution-accuracy grader · re-grader · sweeps
 └── observability/ span tree behind the traces and the cost accounting
 ```
 
-188 tests. `pytest`.
+236 tests. `pytest`.
 
 ---
 

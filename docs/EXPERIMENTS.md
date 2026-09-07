@@ -1151,3 +1151,154 @@ measure, and that is a sample-size decision rather than a code one.
 **Status.** M1 complete. Retrieval works, scoping works, 206 tests. The sweep is
 deliberately not run: on the arm the plan specified it would measure nothing, and
 the offline check that establishes this cost no GPU and about a minute.
+
+## 2026-09-07 — Phase 9: the deep agent, built and not yet benchmarked
+
+Six strategies lost to a single call, and always the same way: each stage
+inherits the previous stage's errors with no way to detect them. The one thing
+that has earned its keep in eight phases is execution feedback, and it currently
+fires only *after* generation is finished.
+
+**The hypothesis.** Move it inside. An agent that can look at the tables, ask
+what a column actually holds, test a join, and see rows before committing has
+the signal the pipelines never had. If decomposition failed because the stages
+were blind, a decomposition that can see should not fail the same way.
+
+It can lose, and that is the point of building it.
+
+### What it is
+
+`deep` plans, then chooses one action per turn from five: inspect tables, get a
+join path, get a column's stored values, run a query, submit. `deep_seeded` is
+the same agent handed `direct`'s draft to start from, so it cannot score below
+the baseline's floor — the gap between the two says how much of any gain is the
+agent rather than the baseline it was given.
+
+Four differences from `react`, each aimed at a failure already measured here:
+
+* **The plan is external state**, re-rendered every turn with its progress.
+  `react` failed at 3B because the model could not hold a plan across turns.
+* **The prompt does not grow.** Named note slots, capped at eight. Step eight
+  costs what step one costs, instead of re-reading a transcript of itself.
+* **Join paths and value spellings are computed in code.** A breadth-first
+  search over the foreign keys cannot get a join key wrong, and D8's rule has
+  held every time it was tested.
+* **Actions are structured output, not the tool-calling API.** `react` found
+  that `qwen2.5-coder:3b` advertises tools and then emits them as message
+  content, which cost this project a false 95.5%. Constrained decoding makes a
+  malformed action unrepresentable.
+
+`self_consistency` ships alongside it, and belongs in the same entry. A ten-call
+strategy's baseline is not `direct` at one call — it is whatever else ten calls
+buy, and the obvious alternative is ten samples of the same prompt with the
+answers voted on. Voting is on the result set rather than the SQL, since two
+correct queries can differ in every character. That control is the reason this
+phase can produce a defensible answer at all.
+
+### Three iterations, all of them my bugs
+
+Run once against the 3B model, watched, fixed, run again:
+
+**It called `find_join_path` seven times with empty arguments** and produced no
+SQL at all. `react` answers a repeated call with "already called with these
+arguments"; I had written that up as a virtue and then not carried it over.
+Added argument validation, repeated-action detection, and a step budget the
+agent can see.
+
+**It wrote `status = 'Shipped'`, got zero rows, was told "check the values", and
+re-ran the identical query twice.** `find_values` was available and it did not
+use it. So the check moved into code: `diagnose_empty_result` parses the string
+literals out of the query, resolves each to its column, looks up what is
+actually stored, and reports the difference. Telling an agent to check
+something is a request; checking it is a control — the same argument as D2.
+
+**It was then told, in its own notes, `orders.status = 'Shipped' matches
+nothing. Stored values include: 'shipped'` — called `find_values`, saw
+`'shipped'` again, and re-submitted `'Shipped'` twice more.** The correct answer
+was in front of it, in plain language, and it could not act on it.
+
+That is where I stopped tuning. Making a 3B model pass one demo question is the
+overfitting this project has already retracted a headline for.
+
+### A development run, on ten easy questions. Not a benchmark.
+
+Generation only, no repair, `qwen2.5-coder:3b`, the first ten demo questions —
+which are the Phase 1 easy set on a five-table toy schema, not a stratified
+sample of anything.
+
+| strategy | generated correctly | calls/question |
+|---|---|---|
+| `direct` | **9 / 10** | **1.0** |
+| `chain` | 7 / 10 | 4.3 |
+| `orchestrator` | 5 / 10 | 5.6 |
+| **`deep`** | **4 / 10** | **8.9** |
+| `react` | 1 / 10 | 2.2 |
+
+Two things are worth taking from this, and one is not.
+
+**Worth taking: the four differences from `react` bought something.** 4/10
+against 1/10, at four times the cost. The plan, the bounded notes, the
+mechanical tools and the structured actions do make a tool-using agent work
+better than the shallow version of itself.
+
+**Worth taking: it is still last among the non-agent strategies, at nine times
+the cost of the winner.** The ordering — fewer moving parts, better generation —
+is the one this project has found in every phase, and the deep agent is more
+moving parts.
+
+**Not worth taking: any conclusion.** Ten easy questions on a toy schema at 3B
+is exactly the setting whose numbers Phase 6 retracted. `direct` scoring 9/10
+leaves almost no room beneath it, which is the same ceiling effect that inflated
+the 41-point gap. This is a development observation about whether the agent
+runs, not a measurement of whether it works.
+
+### The tool distribution is the interesting part
+
+Across 89 actions in ten questions:
+
+| action | times chosen |
+|---|---|
+| `try_sql` | 39 |
+| `inspect_tables` | 26 |
+| `find_join_path` | 11 |
+| `find_values` | **2** |
+| `submit` | **1** |
+
+**`submit` was chosen once in ten questions.** Nine of the ten answers came from
+the fallback — the last query that happened to execute — rather than from the
+agent deciding it was finished. An agent that never concludes is not really
+running the loop it was given.
+
+**`find_values` was chosen twice, against 39 query attempts.** The tool that
+addresses the single most common silent failure went almost unused, while
+`inspect_tables` — which tells the agent what the compact schema in its prompt
+already says — was chosen 26 times.
+
+The budget is being spent on the tool that confirms what it knows, and not on
+the one that would tell it what it has wrong. That is a more useful thing to
+know about small-model agents than the score is, and it is only visible because
+the trace records which action was chosen rather than only the outcome.
+
+### What would settle it, written down first
+
+The measurement is 7B on Kaggle, on the challenging stratum where the only
+positive signal for decomposition has ever appeared — `chain` beat `direct` 30%
+to 25% there, on six questions against five.
+
+Four arms, matched: `direct` (1 call), `self_consistency` (n calls),
+`deep` (~9), `deep_seeded` (~9).
+
+| if | then |
+|---|---|
+| `deep_seeded` beats `direct` and `self_consistency` on challenging questions | the first evidence in this project that decomposition pays, and it pays where it was predicted to |
+| `deep_seeded` beats `direct` but not `self_consistency` | the gain was the budget, not the design. Report it that way |
+| neither deep variant beats `direct` | decomposition is dead at this scale, shown a second independent way, and the project's conclusion is stronger than before |
+| `deep` produces no submission at the same rate as at 3B | the loop is the bottleneck, not the model size, and the finding is about agent scaffolding rather than Text-to-SQL |
+
+The third outcome is the most likely on everything measured so far. It is also
+a perfectly good result, and writing it down now is what stops it being quietly
+reframed later.
+
+**Status.** Built, tested, and deliberately unbenchmarked. 236 tests, 30 of them
+new and none calling a model. The sweep is a Kaggle session, not a laptop one,
+and the entry above is what it will be measured against.
