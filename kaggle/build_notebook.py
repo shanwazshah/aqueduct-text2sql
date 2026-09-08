@@ -30,7 +30,7 @@ MODEL = "qwen2.5-coder:7b"
 # before a run whose numbers will be published; the cell prints whatever it
 # resolved to either way, so the run is at least recorded even when it is not
 # pinned.
-COMMIT = "master"
+COMMIT = "aaba90acc0528229c6f6f55736cfa20c96a0190f"
 
 
 def md(text: str) -> dict:
