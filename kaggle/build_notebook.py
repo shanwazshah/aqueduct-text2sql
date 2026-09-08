@@ -47,7 +47,7 @@ def code(text: str) -> dict:
     }
 
 
-CELLS = [
+SETUP = [
     md(f"""
 # Aqueduct — does decomposition need a capable model?
 
@@ -351,6 +351,14 @@ def run_for_model(model: str, out_path: str, strategies=None, questions=None):
 print("harness ready")
 """),
 
+]
+
+# Everything above is setup and is shared by both notebooks. Everything below is
+# one experiment, so each notebook is a single Run All rather than a list of
+# cells to skip - a seven-hour sweep is not something to babysit a browser tab
+# through, and "Save & Run All" cannot be told to skip a cell.
+
+PHASE6 = [
     md("""
 ## 8 · Run the 7B model
 
@@ -421,19 +429,18 @@ if len(summary) == 2:
     print("result was overfit to easy questions.")
 """),
 
+]
+
+PHASE9 = [
     md("""
-## 11 · Phase 9 — the deep agent, on the challenging stratum
+## 8 · The four arms, on the challenging stratum
 
-**Run this as its own session.** The Phase 6 sweeps and this section together
-exceed the 12-hour cap.
+Everything above this point is setup. There is nothing to skip: **Run All**.
 
-It still needs the setup, so the order is: **run cells 1 through 8** (install,
-Ollama, model, smoke test), **then 10** (BIRD data), **then 12 and 14**
-(questions, databases, the harness) — and **skip the two sweep cells under
-sections 8 and 9**, which are the Phase 6 run. Then run the two cells below.
-
-Persistence is on, so `/kaggle/working` survives between sessions: run one part,
-download its JSON, run the other next time.
+Roughly seven hours after the setup finishes, inside the 12-hour cap. Every
+question is checkpointed, and the arms run in order, so a session that dies part
+way leaves complete data for the arms that finished and resumes the rest on the
+next run.
 
 Four arms on all 102 challenging questions at 7B:
 
@@ -468,13 +475,16 @@ assert not missing, f"missing databases: {missing}"
 rows_deep = run_for_model(
     "qwen2.5-coder:7b",
     "/kaggle/working/bird_results_7b_challenging.json",
-    strategies=["direct", "self_consistency", "deep", "deep_seeded"],
+    # Ordered so a session that runs out of time still leaves the comparison
+    # that decides the phase. `deep` (pure) is last because it is the
+    # architecture curiosity; `deep_seeded` is the version anyone would ship.
+    strategies=["direct", "self_consistency", "deep_seeded", "deep"],
     questions=challenging,
 )
 """),
 
     md("""
-## 12 · Did the agent earn its calls?
+## 9 · Did the agent earn its calls?
 
 Accuracy next to cost, because that is the whole question.
 
@@ -538,9 +548,32 @@ else:
 ]
 
 
-def build() -> dict:
+PHASE9_TITLE = md("""
+# Aqueduct — does a deep agent beat one call, at matched cost?
+
+**Set all three in the right-hand panel, then Run All:**
+
+| setting | value |
+|---|---|
+| Accelerator | **GPU T4 x2** |
+| Internet | **On** |
+| Persistence | **Files only** |
+
+Roughly seven and a half hours: half an hour of setup, then four arms over the
+102 challenging BIRD questions at 7B.
+
+This is Phase 9. The companion notebook (`aqueduct_bird_kaggle.ipynb`) is Phase
+6 and is a separate session - together they exceed the 12-hour cap.
+
+Persistence matters more here than anywhere: every question is checkpointed to
+`/kaggle/working`, so a dropped session resumes instead of restarting. Without
+it, a reset at hour six costs the whole run.
+""")
+
+
+def build(cells: list) -> dict:
     return {
-        "cells": CELLS,
+        "cells": cells,
         "metadata": {
             "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
             "language_info": {"name": "python", "version": "3.11"},
@@ -551,7 +584,14 @@ def build() -> dict:
     }
 
 
+def write(name: str, cells: list) -> None:
+    out = Path(__file__).parent / name
+    out.write_text(json.dumps(build(cells), indent=1), encoding="utf-8")
+    print(f"wrote {out.name}  ({len(cells)} cells)")
+
+
 if __name__ == "__main__":
-    out = Path(__file__).parent / "aqueduct_bird_kaggle.ipynb"
-    out.write_text(json.dumps(build(), indent=1), encoding="utf-8")
-    print(f"wrote {out}  ({len(CELLS)} cells)")
+    # One notebook per experiment. Both share SETUP, neither needs a cell
+    # skipped, and either can be run with Save & Run All.
+    write("aqueduct_bird_kaggle.ipynb", SETUP + PHASE6)
+    write("aqueduct_phase9_kaggle.ipynb", [PHASE9_TITLE] + SETUP[1:] + PHASE9)
