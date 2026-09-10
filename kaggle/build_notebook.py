@@ -433,54 +433,108 @@ if len(summary) == 2:
 
 PHASE9 = [
     md("""
-## 8 · The four arms, on the challenging stratum
+## 8 · The question set, and what is already banked
 
-Everything above this point is setup. There is nothing to skip: **Run All**.
+Four arms over the 102 challenging BIRD questions at 7B:
 
-Roughly seven hours after the setup finishes, inside the 12-hour cap. Every
-question is checkpointed, and the arms run in order, so a session that dies part
-way leaves complete data for the arms that finished and resumes the rest on the
-next run.
+| arm | calls/question | what it is | cell |
+|---|---|---|---|
+| `direct` | 1 | the baseline that has won every phase | 8a |
+| `self_consistency` | 5 | the cost-matched control - five samples, voted | 8b |
+| `deep_seeded` | ~10 | the deep agent, starting from `direct`'s draft | 8c |
+| `deep` | ~9 | the same agent with no seed | 8d |
 
-Four arms on all 102 challenging questions at 7B:
+**Each arm is its own cell.** They were one cell, and one cell of roughly 2,500
+model calls is seven hours — longer than a browser session reliably survives, so
+a disconnect at hour five lost everything after the last completed arm. Split
+up, every arm banks its own result the moment it finishes.
 
-| arm | calls/question | what it is |
-|---|---|---|
-| `direct` | 1 | the baseline that has won every phase |
-| `self_consistency` | 5 | the cost-matched control - five samples, voted |
-| `deep` | ~9 | plans, inspects, tests, submits |
-| `deep_seeded` | ~10 | the same, starting from `direct`'s draft |
+Order matters. `self_consistency` is the arm that makes this worth running: a
+ten-call strategy's baseline is not `direct` at one call, it is whatever else ten
+calls buy. `deep_seeded` is the version anyone would actually ship. `deep` is
+last because it is the architecture curiosity — if the session ends before it,
+the phase still has its answer.
 
-Roughly 2,500 calls, about seven hours at the throughput cells 5-10 measure.
-
-`self_consistency` is the arm that makes this worth running at all. A nine-call
-strategy's baseline is not `direct` at one call - it is whatever else nine calls
-buy. Without it, a win for the deep agent cannot be told apart from a win for
-its budget.
+**Run these as a batch job, not in the browser**: *Save Version → Save & Run All
+(Commit)*. That runs on Kaggle's servers with no tab open, up to 12 hours, and
+emails you when it finishes. An interactive session dies when your laptop sleeps.
 
 The challenging stratum is where the only positive signal for decomposition has
-ever appeared: `chain` beat `direct` 30% to 25% there, on six questions against
+ever appeared — `chain` beat `direct` 30% to 25% there, on six questions against
 five. 102 questions is the sample size that settles it.
 
 **The four possible outcomes are written down in `docs/EXPERIMENTS.md` before
 this runs.** Read them before you read the numbers.
 """),
     code("""
+import json, pathlib
+from collections import Counter
+
+RESULTS = "/kaggle/working/bird_results_7b_challenging.json"
+
 challenging = [q for q in questions if q.difficulty == "challenging"]
 print(f"challenging questions: {len(challenging)}")
 
 missing = sorted({q.db_id for q in challenging} - set(databases))
 assert not missing, f"missing databases: {missing}"
 
-rows_deep = run_for_model(
-    "qwen2.5-coder:7b",
-    "/kaggle/working/bird_results_7b_challenging.json",
-    # Ordered so a session that runs out of time still leaves the comparison
-    # that decides the phase. `deep` (pure) is last because it is the
-    # architecture curiosity; `deep_seeded` is the version anyone would ship.
-    strategies=["direct", "self_consistency", "deep_seeded", "deep"],
-    questions=challenging,
-)
+# What survived from an earlier session. If this says "nothing banked" after a
+# run that clearly did work, Persistence is not set to "Files only" - fix that
+# before spending more GPU, because nothing will be kept.
+f = pathlib.Path(RESULTS)
+if f.exists():
+    done = Counter(r["strategy"] for r in json.load(open(f)))
+    print("already banked:", dict(done) or "nothing")
+    for arm in ("direct", "self_consistency", "deep_seeded", "deep"):
+        n = done.get(arm, 0)
+        print(f"   {arm:<18}{n:>4}/{len(challenging)}"
+              f"{'  complete' if n >= len(challenging) else ''}")
+else:
+    print("nothing banked yet - this is the first run")
+"""),
+
+    md("""
+### 8a · `direct` — the baseline
+
+About 15 minutes. Skips anything already banked.
+"""),
+    code("""
+run_for_model("qwen2.5-coder:7b", RESULTS,
+              strategies=["direct"], questions=challenging)
+"""),
+
+    md("""
+### 8b · `self_consistency` — the cost-matched control
+
+About 2 hours. This is the arm that separates *the design worked* from *the
+budget worked*, so it runs before either deep variant.
+"""),
+    code("""
+run_for_model("qwen2.5-coder:7b", RESULTS,
+              strategies=["self_consistency"], questions=challenging)
+"""),
+
+    md("""
+### 8c · `deep_seeded` — the shippable deep agent
+
+About 2.5 hours. Handed `direct`'s draft to start from, so it cannot score below
+the baseline's floor. This is the arm the phase turns on.
+"""),
+    code("""
+run_for_model("qwen2.5-coder:7b", RESULTS,
+              strategies=["deep_seeded"], questions=challenging)
+"""),
+
+    md("""
+### 8d · `deep` — the unseeded agent
+
+About 2.5 hours. Optional: the gap between this and `deep_seeded` says how much
+of any gain is the agent rather than the draft it was given. If the session is
+running short, stop after 8c — the phase still has its answer.
+"""),
+    code("""
+run_for_model("qwen2.5-coder:7b", RESULTS,
+              strategies=["deep"], questions=challenging)
 """),
 
     md("""
@@ -559,15 +613,23 @@ PHASE9_TITLE = md("""
 | Internet | **On** |
 | Persistence | **Files only** |
 
+**Then use *Save Version → Save & Run All (Commit)*, not the interactive Run
+All.** The arms take about seven hours in total, and an interactive session ends
+when your browser disconnects or the laptop sleeps. A committed run executes on
+Kaggle's servers with nothing open and emails you when it is done.
+
 Roughly seven and a half hours: half an hour of setup, then four arms over the
-102 challenging BIRD questions at 7B.
+102 challenging BIRD questions at 7B. Each arm is its own cell (8a-8d) and banks
+its result independently, so a run that ends early keeps everything finished so
+far and resumes from there.
 
 This is Phase 9. The companion notebook (`aqueduct_bird_kaggle.ipynb`) is Phase
 6 and is a separate session - together they exceed the 12-hour cap.
 
-Persistence matters more here than anywhere: every question is checkpointed to
-`/kaggle/working`, so a dropped session resumes instead of restarting. Without
-it, a reset at hour six costs the whole run.
+**Persistence matters more here than anywhere.** Every question is checkpointed
+to `/kaggle/working`. Without "Files only", a reset at hour six costs the whole
+run. Cell 8 prints what is banked before any arm starts, so this is verifiable
+rather than assumed.
 """)
 
 
