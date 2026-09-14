@@ -652,8 +652,158 @@ def write(name: str, cells: list) -> None:
     print(f"wrote {out.name}  ({len(cells)} cells)")
 
 
+# ── the lite Phase 9 ────────────────────────────────────────────────
+#
+# The full Phase 9 is ~2,550 model calls and did not finish in a session. This
+# is the same experiment cut to what completes in one sitting:
+#
+#   * three arms, not four. `deep` (unseeded) is dropped - the phase's question
+#     is whether the deep agent beats one call at matched cost, and
+#     `deep_seeded` is the version anyone would ship.
+#   * 50 challenging questions, not 102. Still 2.5x the sample that produced
+#     the signal this phase exists to test (6 questions against 5, out of 20).
+#
+# ~800 calls, roughly two hours of arms plus half an hour of setup. What it
+# buys is a result that exists; the 102-question version can follow later.
+
+PHASE9_LITE_TITLE = md("""
+# Aqueduct — does a deep agent beat one call? (lite)
+
+**Right-hand panel:** Accelerator **GPU T4 x2** · Internet **On** ·
+Persistence **Files only**. Then **Run All**.
+
+About three hours: half an hour of setup, then three arms over 50 challenging
+BIRD questions at 7B.
+
+This is the full Phase 9 cut down to finish in one session. The full version
+(`aqueduct_phase9_kaggle.ipynb`) runs four arms over 102 questions, is about
+2,550 model calls, and did not complete. Two things were dropped:
+
+* the `deep` arm, unseeded. `deep_seeded` is the version anyone would ship, and
+  the phase's question is whether it beats one call at matched cost.
+* half the questions. 50 is still 2.5x the sample that produced the signal this
+  phase exists to test — `chain` beat `direct` 30% to 25% on the challenging
+  stratum, on six questions against five.
+
+Each arm is its own cell and banks its result as it finishes, so a session that
+ends early keeps everything up to that point.
+
+**The four possible outcomes were written into `docs/EXPERIMENTS.md` before any
+of this ran.** Read them before reading the numbers.
+""")
+
+PHASE9_LITE = [
+    md("""
+## 8 · The arms
+
+| arm | calls/question | what it is |
+|---|---|---|
+| `direct` | 1 | the baseline that has won every phase |
+| `self_consistency` | 5 | five samples of the same prompt, voted |
+| `deep_seeded` | ~10 | the deep agent, starting from `direct`'s draft |
+
+`self_consistency` is why this is worth running. A ten-call strategy's baseline
+is not `direct` at one call — it is whatever else ten calls buy, and the obvious
+alternative is just sampling the same prompt repeatedly. Note that it spends 5
+calls against `deep_seeded`'s 10: if the agent wins, that gap is the first thing
+to check before crediting the design.
+"""),
+    code("""
+import json, pathlib
+from collections import Counter
+
+RESULTS = "/kaggle/working/phase9_lite.json"
+N_QUESTIONS = 50
+
+challenging = [q for q in questions if q.difficulty == "challenging"][:N_QUESTIONS]
+print(f"questions: {len(challenging)} challenging")
+
+missing = sorted({q.db_id for q in challenging} - set(databases))
+assert not missing, f"missing databases: {missing}"
+
+# If this says "nothing banked" after a run that clearly did work, Persistence
+# is not on - fix that before spending more GPU, because nothing is being kept.
+f = pathlib.Path(RESULTS)
+if f.exists():
+    done = Counter(r["strategy"] for r in json.load(open(f)))
+    for arm in ("direct", "self_consistency", "deep_seeded"):
+        n = done.get(arm, 0)
+        print(f"   {arm:<18}{n:>4}/{len(challenging)}"
+              f"{'  done' if n >= len(challenging) else ''}")
+else:
+    print("   nothing banked yet - first run")
+"""),
+
+    md("### 8a · `direct` — about 10 minutes"),
+    code("""
+run_for_model("qwen2.5-coder:7b", RESULTS,
+              strategies=["direct"], questions=challenging)
+"""),
+
+    md("### 8b · `self_consistency` — about 45 minutes"),
+    code("""
+run_for_model("qwen2.5-coder:7b", RESULTS,
+              strategies=["self_consistency"], questions=challenging)
+"""),
+
+    md("### 8c · `deep_seeded` — about 90 minutes"),
+    code("""
+run_for_model("qwen2.5-coder:7b", RESULTS,
+              strategies=["deep_seeded"], questions=challenging)
+"""),
+
+    md("""
+## 9 · Did the agent earn its calls?
+
+Accuracy next to cost, and the deep agent's own metadata. At 3B it chose
+`submit` once in ten questions, taking nine answers from the fallback instead.
+If that holds at 7B, the finding is about agent scaffolding rather than
+Text-to-SQL — and the score is the less interesting half.
+"""),
+    code("""
+import json, pathlib
+
+f = pathlib.Path(RESULTS)
+raw = json.load(open(f)) if f.exists() else []
+if not raw:
+    print("nothing to report - run cells 8a-8c")
+else:
+    print(f"BIRD challenging, 7B - {len(raw)} rows\\n")
+    print(f"{'arm':<18}{'gen EX':>9}{'final EX':>10}{'calls/q':>9}{'s/q':>8}"
+          f"{'submitted':>12}{'n':>5}")
+    print("-" * 71)
+
+    scores = {}
+    for arm in ("direct", "self_consistency", "deep_seeded"):
+        subset = [r for r in raw if r["strategy"] == arm]
+        if not subset:
+            continue
+        n = len(subset)
+        gen = 100 * sum(1 for r in subset if r["draft_correct"]) / n
+        fin = 100 * sum(1 for r in subset if r["correct"]) / n
+        scores[arm] = gen
+        # `submit` reaches the trace only when the agent finished on purpose,
+        # rather than falling back to the last query that happened to run.
+        sub = sum(1 for r in subset if "submit" in (r.get("agents") or []))
+        print(f"{arm:<18}{gen:>8.1f}%{fin:>9.1f}%"
+              f"{sum(r['calls'] for r in subset) / n:>9.1f}"
+              f"{sum(r['seconds'] for r in subset) / n:>8.1f}"
+              f"{sub:>9}/{n:<3}{n:>5}")
+    print("-" * 71)
+
+    if "direct" in scores and "deep_seeded" in scores:
+        print(f"\\ndeep_seeded vs direct          : "
+              f"{scores['deep_seeded'] - scores['direct']:+.1f}")
+    if "self_consistency" in scores and "deep_seeded" in scores:
+        print(f"deep_seeded vs self_consistency: "
+              f"{scores['deep_seeded'] - scores['self_consistency']:+.1f}"
+              f"   <- the comparison that decides it")
+"""),
+]
+
+
 if __name__ == "__main__":
-    # One notebook per experiment. Both share SETUP, neither needs a cell
-    # skipped, and either can be run with Save & Run All.
+    # One notebook per experiment. All share SETUP, none needs a cell skipped.
     write("aqueduct_bird_kaggle.ipynb", SETUP + PHASE6)
     write("aqueduct_phase9_kaggle.ipynb", [PHASE9_TITLE] + SETUP[1:] + PHASE9)
+    write("aqueduct_phase9_lite.ipynb", [PHASE9_LITE_TITLE] + SETUP[1:] + PHASE9_LITE)
