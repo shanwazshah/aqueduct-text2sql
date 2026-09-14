@@ -1302,3 +1302,106 @@ reframed later.
 **Status.** Built, tested, and deliberately unbenchmarked. 236 tests, 30 of them
 new and none calling a model. The sweep is a Kaggle session, not a laptop one,
 and the entry above is what it will be measured against.
+
+## 2026-09-14 — Phase 9 measured: the budget, not the design
+
+The deep agent was built in Phase 9 and deliberately left unbenchmarked, with
+four outcomes written down in advance. The sweep has now run: 50 challenging
+BIRD questions at 7B, three arms, `qwen2.5-coder:7b` on a Kaggle T4.
+
+### The result
+
+| arm | gen EX | final EX | calls/q | **s/q** | submitted |
+|---|---|---|---|---|---|
+| `direct` | 20.0% | 26.0% | 1.4 | **6.1** | 0/50 |
+| `self_consistency` | **28.0%** | 30.0% | 5.1 | **19.1** | 0/50 |
+| `deep_seeded` | **28.0%** | 30.0% | 9.8 | **318.0** | 27/50 |
+
+**This is pre-registered outcome 2**, which read: *"`deep_seeded` beats `direct`
+but not `self_consistency` — the gain was the budget, not the design. Report it
+that way."*
+
+Both multi-call arms beat the baseline by **+8.0 points**. Neither beats the
+other. The deep agent spends **1.9× the calls and 16.6× the wall clock** of
+plain repeated sampling to arrive at the same accuracy.
+
+The wall-clock figure is the one worth keeping. 318 seconds against 19 is not a
+rounding difference — the agent's turns carry a plan, accumulated notes and a
+schema, so each of its ten calls costs roughly six times what one of
+`self_consistency`'s five costs. Reporting calls alone would have hidden a
+16.6× gap behind a 1.9× one.
+
+### The tie is not the same fourteen questions
+
+An exact tie invites the reading that the two arms are equivalent. They are not:
+
+| | questions solved |
+|---|---|
+| both | 12 |
+| `self_consistency` only | 2 |
+| `deep_seeded` only | 2 |
+| **union** | **16 (32%)** |
+
+So the tie is a coincidence of counts, not of behaviour. The union is four points
+above either arm, which is the shape of a complementarity result — and at two
+questions per side it is also exactly the shape of noise. It is a hypothesis, not
+a finding, and the way to settle it is the 102-question stratum, not a sentence
+here.
+
+**`deep_seeded` solved 4 questions `direct` missed and lost none of them.** That
+is by construction rather than by merit — it starts from `direct`'s draft, so it
+cannot score below the baseline's floor. It is worth stating because it means the
++8.0 is genuinely additive, and it means an unseeded `deep` has no such guarantee.
+
+### The scaffolding did improve with scale. The accuracy did not.
+
+At 3B the agent chose `submit` **once in ten** questions; nine of its ten answers
+came from the fallback. At 7B it is **27 of 50 (54%)** — a fivefold improvement in
+the agent actually deciding it is finished.
+
+So the Phase 9 loop was capability-bound, exactly as suspected, and the fix at
+scale is real. **It bought nothing.** The agent that concludes on purpose scores
+the same as the one that samples the prompt five times and votes.
+
+That is the sharpest version of this project's finding: the failure was never
+that the scaffolding did not work. It is that the scaffolding working does not
+help.
+
+### How the numbers were nearly lost, and were not
+
+The report printed one arm, 50 rows. All three arms had run.
+
+Each arm ran in a fresh Kaggle session with an empty `/kaggle/working` — cell 8
+printed *"nothing banked yet - first run"* while `direct`'s rows were already
+written in a previous session. `direct` and `self_consistency` shared a session
+and accumulated correctly (that cell's output holds 100 rows); `deep_seeded` ran
+in a later one and its file replaced them.
+
+The data was not lost. `run()` returns its row dict, Jupyter records the repr of
+a cell's final expression, and all 150 rows were sitting in the saved notebook's
+`outputs`. `eval/recover.py` parses them back out.
+
+Recovered fields are the graded booleans, counts and timings. `sql`, `draft_sql`
+and `reason` are not — Jupyter truncates long strings — so the file is marked
+partial and cannot be re-graded. That distinction matters: Phase 7 recorded that
+losing `draft_sql` costs a GPU re-run, and this file is in exactly that state.
+
+**The lesson is not "turn on Persistence".** It is that a result should not
+depend on one mutable file surviving a session. The row data was in the notebook
+the whole time because the harness returns it; had `run()` printed a summary and
+returned `None`, seven GPU hours would be gone.
+
+### Where this leaves the project
+
+Nine phases, and the single-call baseline has now been beaten — by **repeated
+sampling**, not by any architecture. `self_consistency` is +8.0 for 5 calls and
+3× the wall clock, which is a real and cheap win, and it is not an agent.
+
+Every architecture built from the source notebooks — chaining, orchestration,
+parallel critics, evaluator-optimizer, ReAct, and now a planning agent with
+mechanical tools and bounded notes — has failed to beat the simplest thing that
+spends the same budget.
+
+**Status.** Phase 9 measured and closed against its pre-registration. Open: the
+complementarity hint (16/50 union against 14/50 each), which needs the full
+challenging stratum to separate from noise.

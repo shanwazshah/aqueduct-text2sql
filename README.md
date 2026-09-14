@@ -41,6 +41,34 @@ all on 14 of them, because a 3B model cannot hold a multi-step plan.
 compute.** Every architecture that replaces one-shot generation with a pipeline
 does worse, and the more stages it has, the worse it does.
 
+### What finally beat it was not an architecture
+
+A later phase built a deep agent — one that plans, inspects tables, checks what a
+column actually holds, and tests SQL before committing — and measured it against
+a control nobody usually runs: the same budget spent on simply sampling the
+baseline prompt several times and voting.
+
+50 challenging BIRD questions, 7B:
+
+| arm | gen EX | calls/q | **seconds/q** |
+|---|---|---|---|
+| `direct` | 20.0% | 1.4 | **6.1** |
+| `self_consistency` — 5 samples, voted | **28.0%** | 5.1 | **19.1** |
+| `deep_seeded` — the deep agent | **28.0%** | 9.8 | **318.0** |
+
+Both beat the baseline by **+8.0**. Neither beats the other. The agent spends
+**16.6× the wall clock** to match what repeated sampling achieves — and reporting
+calls alone would have hidden that behind a 1.9× gap.
+
+The outcome was one of four written into
+[`docs/EXPERIMENTS.md`](docs/EXPERIMENTS.md) *before* the sweep ran: *"the gain
+was the budget, not the design. Report it that way."*
+
+One thing did improve with scale. At 3B the agent chose to `submit` an answer
+once in ten questions, taking nine from a fallback; at 7B it was 27 of 50. **The
+scaffolding started working, and it bought nothing** — which is a sharper result
+than the scaffolding failing would have been.
+
 The mechanism is the same in each case: **every stage inherits the previous
 stage's errors and has no way to detect them.** The orchestrator's synthesiser is
 instructed to follow its specialists' findings, so a wrong join key from one
