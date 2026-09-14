@@ -1,212 +1,141 @@
 # Aqueduct
 
-**Six agentic Text-to-SQL architectures, benchmarked against each other — and the
-control run that showed my own headline result was mostly an artifact of my test
-set.**
-
-The project started as an implementation exercise from two course notebooks on
-agent design. It became an evaluation project, because once the six architectures
-were measurable it turned out most of them do not work, and the reason is more
-interesting than the code.
+**Nine ways to turn a question into SQL, benchmarked against each other.**
+The simplest one wins — and two of my own headline numbers turned out to be
+measurement bugs before I caught them.
 
 ```bash
 python -m aqueduct.cli ask "Which product category made the most revenue?" --explain
 ```
 
-*(That needs the install and a local model first — see [Running it](#running-it).)*
-
 ---
 
-## The result
+## The headline
 
-100 questions from [BIRD mini-dev](https://bird-bench.github.io/), 11 real
-databases, graded by execution accuracy — the generated query is run and its
-result set compared against the reference.
+Multi-agent architectures are the standard advice for tasks like this. Measured
+on [BIRD](https://bird-bench.github.io/) — a real benchmark, 11 databases, graded
+by running the SQL and comparing results — they lose to a single well-written
+prompt.
 
-| strategy | LLM calls | 3B gen EX | 7B gen EX |
+**100 questions, `qwen2.5-coder` at two sizes:**
+
+| strategy | LLM calls | 3B | 7B |
 |---|---|---|---|
 | **`direct`** — one call | **1** | **29.0%** | **41.0%** |
 | `chain` — 5-stage pipeline | ~5 | 20.0% | 35.0% |
-| `orchestrator` — planner + specialists | ~6 | 16.0% | 32.0% |
+| `orchestrator` — planner + 5 specialists | ~6 | 16.0% | 32.0% |
 
-These three are the strategies that were run on BIRD. `react`, `parallel` and
-`eval_optimize` were not, and no number is borrowed for them here — mixing a
-demo-set score into a BIRD table is the mistake this project already retracted
-once, and it is not worth repeating for a tidier table. Their demo-set results
-are in [`docs/EXPERIMENTS.md`](docs/EXPERIMENTS.md); the short version is that
-`react` generated one correct query in twenty-two at 3B, making no tool call at
-all on 14 of them, because a 3B model cannot hold a multi-step plan.
+**Why:** every stage inherits the previous stage's errors and has no way to
+detect them. The orchestrator's synthesiser is *instructed* to follow its
+specialists, so one worker's wrong join key goes straight into the final query.
 
-**The single-call baseline wins at both model sizes, using five times less
-compute.** Every architecture that replaces one-shot generation with a pipeline
-does worse, and the more stages it has, the worse it does.
-
-### What finally beat it was not an architecture
-
-A later phase built a deep agent — one that plans, inspects tables, checks what a
-column actually holds, and tests SQL before committing — and measured it against
-a control nobody usually runs: the same budget spent on simply sampling the
-baseline prompt several times and voting.
-
-50 challenging BIRD questions, 7B:
-
-| arm | gen EX | calls/q | **seconds/q** |
-|---|---|---|---|
-| `direct` | 20.0% | 1.4 | **6.1** |
-| `self_consistency` — 5 samples, voted | **28.0%** | 5.1 | **19.1** |
-| `deep_seeded` — the deep agent | **28.0%** | 9.8 | **318.0** |
-
-Both beat the baseline by **+8.0**. Neither beats the other. The agent spends
-**16.6× the wall clock** to match what repeated sampling achieves — and reporting
-calls alone would have hidden that behind a 1.9× gap.
-
-The outcome was one of four written into
-[`docs/EXPERIMENTS.md`](docs/EXPERIMENTS.md) *before* the sweep ran: *"the gain
-was the budget, not the design. Report it that way."*
-
-One thing did improve with scale. At 3B the agent chose to `submit` an answer
-once in ten questions, taking nine from a fallback; at 7B it was 27 of 50. **The
-scaffolding started working, and it bought nothing** — which is a sharper result
-than the scaffolding failing would have been.
-
-The mechanism is the same in each case: **every stage inherits the previous
-stage's errors and has no way to detect them.** The orchestrator's synthesiser is
-instructed to follow its specialists' findings, so a wrong join key from one
-worker is faithfully written into the final query.
-
-41% on BIRD mini-dev is a credible 7B-class number — published results for models
-this size sit in the 25–45% band.
+*(41% is a credible 7B-class BIRD score — published results sit at 25–45%.)*
 
 ---
 
-## The retraction
+## What finally beat it wasn't an architecture
 
-An earlier version of this README reported the gap between `direct` and the
-decomposed strategies as **41 points**, measured on a 22-question demo set.
+A later phase built a proper **deep agent**: it plans, inspects tables, checks
+what a column actually contains, and tests queries before committing.
 
-That number was inflated roughly 5× by the test set.
+It was measured against a control most people skip — spend the same budget just
+**sampling the baseline prompt five times and voting**.
 
-| gap behind `direct` | 3B, demo set | 3B, BIRD | 7B, BIRD |
+**50 challenging BIRD questions, 7B:**
+
+| arm | accuracy | calls | **seconds/question** |
 |---|---|---|---|
-| `chain` | **40.9** | **9.0** | **6.0** |
-| `orchestrator` | **50.0** | **13.0** | **9.0** |
+| `direct` | 20.0% | 1.4 | **6** |
+| `self_consistency` — 5 samples, voted | **28.0%** | 5.1 | **19** |
+| `deep_seeded` — the deep agent | **28.0%** | 9.8 | **318** |
 
-Holding the model fixed and changing only the benchmark takes the gap from 40.9
-to 9.0. Changing the model then takes it from 9.0 to 6.0. **About 90% of the
-effect I originally attributed to model capability was my own easy test set.**
+Identical accuracy. The agent took **16× longer**.
 
-In hindsight the mechanism is obvious: `direct` scored 90.9% on the demo set,
-leaving 41 points of room beneath it for a gap to occupy. At 29% there is not.
+The four possible outcomes were written into
+[`docs/EXPERIMENTS.md`](docs/EXPERIMENTS.md) **before** the run. This was outcome
+2: *"the gain was the budget, not the design. Report it that way."*
 
-The real conclusions are narrower and better supported:
-
-- the decomposition penalty on a real benchmark is **6–13 points**, not 41–50;
-- model scale narrows it by **3–4 points** — small, but consistent in sign across
-  two independent pipelines;
-- `direct` still wins at both sizes.
-
-Full history in [`docs/EXPERIMENTS.md`](docs/EXPERIMENTS.md), including the entry
-that made the original claim.
+One thing did improve with scale: at 3B the agent decided it was finished on 1
+question in 10; at 7B, on 27 of 50. **The scaffolding started working and it
+bought nothing** — a sharper result than it failing would have been.
 
 ---
 
-## What actually earned its keep
+## What actually helped
 
 Nothing that worked was an agent.
 
-**Execution feedback.** Run the query, read the database's error, rewrite. Costs
-nothing when the query succeeds, one call when it fails.
+**Execution feedback** — run the query, read the database's error, rewrite. Free
+when the query succeeds, one call when it fails.
 
-| strategy | repair gain, 3B | repair gain, 7B |
+| strategy | gain, 3B | gain, 7B |
 |---|---|---|
 | `direct` | +4.0 | +1.0 |
 | `chain` | **+10.0** | **+6.0** |
 | `orchestrator` | +2.0 | +3.0 |
 
-It helps most exactly where generation is weakest — a pipeline emits more
-*executable but wrong* SQL, and execution feedback is the signal that catches it.
-This held in every phase, on both benchmarks, at both model sizes.
+It helps most where generation is weakest — pipelines produce more
+*executable but wrong* SQL, and the database is what catches it.
 
-**Model self-critique, by contrast, bought +0.0 for double the calls**, measured
-twice.
+**Asking the model to review its own work** was worth **+0.0 for double the
+calls**, measured twice. Shown `SELECT dept FROM employees` and told the column
+is `department`, a 3B model replied `schema_ok: true, confidence: 0.9`.
 
-**The error memory turned out never to have fired at all.** Lessons carried from
-a verified repair into later prompts — except the retrieval key was 80%
-repair-loop boilerplate that no question can contain, so across 462 demo-set
-question pairs it recalled zero times, and had been inert since it was written.
-Keying on the question instead takes retrieval reach on the real BIRD questions
-from 2.8% to 59.8%.
+**The schema card** — foreign keys listed explicitly, plus sample values, so the
+model can see `status` holds `'shipped'` instead of guessing `'Shipped'` and
+silently returning nothing.
 
-It is still not measured, and that is the more useful half. A lesson only exists
-where a repair worked, and `direct` repairs 4.5% of questions — so on the arm
-the plan called for, a hundred questions with memory on and off, about one
-question in a hundred would ever see a lesson. Both facts cost no GPU: they came
-from checking whether the mechanism fires *before* measuring what it is worth. Asked to review `SELECT dept FROM employees` having been told the column is
-`department`, a 3B model returned `schema_ok: true, confidence: 0.9`.
-
-**The schema card.** Foreign keys listed explicitly, plus sample values for
-categorical columns so the model can see that `status` holds `'shipped'` rather
-than guessing `'Shipped'` and silently returning zero rows.
-
-**Doing in code what does not need a model.** Column existence is a
-set-membership test. It runs in Python.
+**Doing in code what doesn't need a model** — column existence is a lookup, so it
+runs in Python.
 
 ---
 
-## Design decisions worth knowing about
+## Two numbers I got wrong
 
-**Safety is enforced by a parser, not a prompt.** Generated SQL is parsed to an
-AST and rejected unless it is exactly one read statement with no write or admin
-node anywhere in the tree, then a row cap is injected. The source notebooks write
-*"NEVER run DELETE, DROP"* into the agent persona — a request, not a control.
-`tests/test_safety.py` holds 16 adversarial cases including a `DELETE` hidden
-inside a CTE and a comment-breakout attempt. All 500 BIRD reference queries pass
-the guard with zero false positives.
+Both looked completely plausible. Neither was caught by re-reading code — only by
+measuring the same thing a second way.
 
-**The mechanical schema check is parsed, not pattern-matched.** A regex version
-flagged output aliases, string literals, type names and function names as
-nonexistent columns — every one on a *correct* query, and each would have
-triggered a pointless repair.
+**A strategy scored 95.5% while generating nothing.** `react` made no tool calls
+at all on 14 of 22 questions; the repair layer wrote every query and the
+leaderboard credited the agent. The tell wasn't the score — it was a repair count
+of 22/22 against `direct`'s 1. Results now record the raw draft graded *before*
+repair touches it.
 
-**The evaluation code is tested adversarially too.** The grader has had three
-false-pass bugs. Two were before it had a single user: both attempts to make
-column order irrelevant scored `(min=5, max=10)` and `(min=10, max=5)` as
-identical, so it now compares positionally, exactly as BIRD's and Spider's
-official scripts do. The third survived to Phase 7 — row order was relaxed
-whenever the *prediction* omitted `ORDER BY`, so a prediction could opt out of
-the check by not sorting. Order-sensitivity is now decided by the reference
-alone.
+**A "41-point gap" was 90% my own test set.** I reported that decomposition cost
+41 points, measured on 22 easy questions. The control run:
 
-**Generation is measured separately from rescue.** Each result records the
-strategy's raw draft graded *before* the repair layer touches it. Without that
-column, `react` scored 81.8% while generating one correct query in 22 — the
-repair layer was writing every query and the leaderboard was labelling it
-`react`.
+| gap behind `direct` | 22-question demo | BIRD, same model | BIRD, bigger model |
+|---|---|---|---|
+| `chain` | **40.9** | **9.0** | **6.0** |
 
-Full reasoning, including approaches that were tried and dropped:
-[`docs/DECISIONS.md`](docs/DECISIONS.md).
+Changing only the benchmark took it from 40.9 to 9.0. The real penalty is
+**6–13 points**, not 41–50. `direct` scored 90.9% on the easy set, leaving 41
+points of room beneath it for a gap to occupy; at 29% there isn't.
+
+**Eight instrumentation bugs found. Zero in the agent logic.** Seven flattered the
+result. The measuring apparatus was consistently less trustworthy than the thing
+it measured.
 
 ---
 
-## What I would tell you in review
+## Engineering worth noting
 
-Eight instrumentation bugs were found over this project. Zero bugs were found in
-the agent logic.
+**Safety is enforced by a parser, not a prompt.** Every generated query is parsed
+to an AST and rejected unless it's exactly one read statement with no write
+anywhere in the tree. `tests/test_safety.py` holds 16 attacks including a
+`DELETE` hidden inside a CTE. All 500 BIRD reference queries pass with zero false
+positives.
 
-**The measuring apparatus was consistently less reliable than the thing being
-measured.** Seven of the eight flattered the result. The eighth — a sampler that
-under-sampled whichever database sorted last — skewed the question set in a
-direction I have not measured, which is its own kind of problem.
+**The grader is tested adversarially too.** It had three false-pass bugs — two
+before it had a single user, one that survived to Phase 7 where a prediction could
+dodge the row-order check by not sorting.
 
-The first six were caught by measuring the same thing a second way and noticing
-the two answers disagreed; not one was caught by reading the code. The last two
-were caught the opposite way, by reading the code against what the documentation
-claimed it did — a far cheaper check that in seven phases I had never run.
+**Results are checkpointed and resumable.** A benchmark sweep is hours of GPU; a
+dropped session resumes rather than restarts.
 
-Two numbers reached a written conclusion before being caught. The first was
-`react`'s original 95.5%: before the tool-call bug was found it generated nothing
-at all, and the repair layer wrote every query under its name. The second was the
-41-point gap above. Both looked entirely plausible.
+Full reasoning, including rejected approaches:
+[`docs/DECISIONS.md`](docs/DECISIONS.md) ·
+Dated results including the retraction: [`docs/EXPERIMENTS.md`](docs/EXPERIMENTS.md)
 
 ---
 
@@ -214,43 +143,33 @@ at all, and the repair layer wrote every query under its name. The second was th
 
 ```bash
 pip install -e ".[ui,dev]"
-python -m aqueduct.cli seed          # build the demo database
-python -m aqueduct.cli doctor        # check database + LLM backend
+python -m aqueduct.cli seed      # build the demo database
+python -m aqueduct.cli doctor    # check database + model are reachable
 ```
 
-Needs any OpenAI-compatible endpoint. Locally that is [Ollama](https://ollama.com):
+Needs any OpenAI-compatible endpoint. Locally that's [Ollama](https://ollama.com):
 
 ```bash
 ollama pull qwen2.5-coder:3b
-```
-
-```bash
 python -m aqueduct.cli ask "Which department has the highest total salary spend?"
 ```
 
+**The UI** — watch agents appear live, with their cost:
+
 ```bash
-python -m aqueduct.eval.compare      # strategy leaderboard on the demo set
-python -m aqueduct.eval.ablation     # repair signals, head to head
-python -m aqueduct.eval.routing      # verification tiers
+streamlit run ui/app.py
 ```
 
-The BIRD sweep runs on Kaggle — import
-[`kaggle/aqueduct_bird_kaggle.ipynb`](kaggle/aqueduct_bird_kaggle.ipynb), set
-**GPU T4 x2**, **Internet On**, **Persistence: Files only**, and Run All.
+**The experiments:**
 
----
+```bash
+python -m aqueduct.eval.compare      # strategy leaderboard
+python -m aqueduct.eval.ablation     # which repair signal works
+python -m aqueduct.eval.routing      # how much verification is worth
+```
 
-## Two tiers, one codebase
-
-| Tier | Hardware | Model | For |
-|---|---|---|---|
-| **Dev** | laptop, 4 GB VRAM | `qwen2.5-coder:3b` | iteration, tests |
-| **Eval** | Kaggle 2× T4 | `qwen2.5-coder:7b` | benchmark sweeps |
-
-Both speak the OpenAI protocol, so the backend is a `base_url` in config — nothing
-under `agents/` or `strategies/` knows which tier it is on. That is what makes
-model size a measurable axis rather than a rewrite, and it is why the control run
-above was cheap enough to bother with.
+BIRD runs on a GPU — import a notebook from [`kaggle/`](kaggle/), set **GPU T4
+x2**, **Internet On**, **Persistence: Files only**, Run All.
 
 ---
 
@@ -258,28 +177,27 @@ above was cheap enough to bother with.
 
 ```
 src/aqueduct/
-├── db/           engine · introspect · safety (sqlglot AST guard) · seed
-├── llm/          one OpenAI-compatible client · disk cache · bounded types
-├── agents/       writer · critic · fixer · memory
-├── strategies/   direct · react · chain · parallel · eval_optimize · orchestrator
-│                 deep · deep_seeded · self_consistency
-├── router.py     verification tiering, decided from the parsed SQL
-├── eval/         BIRD loader · execution-accuracy grader · re-grader · sweeps
-└── observability/ span tree behind the traces and the cost accounting
+├── db/            engine · schema introspection · sqlglot safety guard
+├── llm/           one OpenAI-compatible client (Ollama, vLLM, OpenAI) · cache
+├── agents/        writer · critic · fixer · error memory
+├── strategies/    direct · react · chain · parallel · eval_optimize
+│                  orchestrator · deep · deep_seeded · self_consistency
+├── router.py      how much verification a query deserves, from its parsed AST
+├── eval/          BIRD loader · execution-accuracy grader · sweeps · recovery
+└── observability/ span tree behind the live trace and cost accounting
 ```
 
-236 tests. `pytest`.
+**236 tests** — `pytest`. Config in `.env`, see [`.env.example`](.env.example).
+
+The same code runs against a 3B model on a laptop and a 7B on a Kaggle T4 — the
+backend is a `base_url`, so model size is a measurable axis rather than a rewrite.
 
 ---
 
 ## Open question
 
-On **challenging** BIRD questions at 7B, `chain` beat `direct` — **30% vs 25%**.
-That is decomposition behaving as intended: hard problem, model capable enough for
-the extra structure to pay.
+On the hardest BIRD questions, `chain` beat `direct` — **30% vs 25%**. That's
+decomposition working as intended: hard problem, capable enough model.
 
-It is also 6 questions against 5, out of 20. A hypothesis, not a finding. The full
-mini-dev has 102 challenging questions, which is the sample size that would settle
-it.
-
-Configuration lives in `.env` — see [`.env.example`](.env.example).
+It's also 6 questions against 5, out of 20. **A hypothesis, not a finding.** The
+full stratum has 102 questions, which is the sample size that would settle it.
