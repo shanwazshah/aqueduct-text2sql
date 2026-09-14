@@ -1,0 +1,2984 @@
+[
+ {
+  "strategy": "direct",
+  "question_id": 1476,
+  "db_id": "debit_card_specializing",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 4.995141735000061,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1481,
+  "db_id": "debit_card_specializing",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 3,
+  "seconds": 61.02856058400005,
+  "repaired": true,
+  "agents": [
+   "writer",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1482,
+  "db_id": "debit_card_specializing",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 7.797407305999968,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1526,
+  "db_id": "debit_card_specializing",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 4.675740133999966,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1339,
+  "db_id": "student_club",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 1,
+  "seconds": 3.4897531270000854,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1359,
+  "db_id": "student_club",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 3.3841358140000466,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1457,
+  "db_id": "student_club",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 1.7633902400000352,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1460,
+  "db_id": "student_club",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 1,
+  "seconds": 1.8644416050000245,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1464,
+  "db_id": "student_club",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 1,
+  "seconds": 1.862862175000032,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1168,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 2,
+  "seconds": 7.755809394999915,
+  "repaired": true,
+  "agents": [
+   "writer",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1169,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 1,
+  "seconds": 3.932623602999911,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1171,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 2.8518640649999725,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1185,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 5.843993533999992,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1189,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 2.9196882219999907,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1192,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 3,
+  "seconds": 10.722624979999978,
+  "repaired": true,
+  "agents": [
+   "writer",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1231,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 3.500078106999922,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1232,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 2,
+  "seconds": 6.399224161999996,
+  "repaired": true,
+  "agents": [
+   "writer",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1239,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 1,
+  "seconds": 2.647583415999975,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1241,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 3.474406980000026,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1242,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 2,
+  "seconds": 8.224364208999987,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1243,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 2,
+  "seconds": 7.94039038599999,
+  "repaired": true,
+  "agents": [
+   "writer",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1247,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 3.5389832959999694,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1257,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 1,
+  "seconds": 2.2321858860000248,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1270,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 3,
+  "seconds": 6.965950613000018,
+  "repaired": true,
+  "agents": [
+   "writer",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1302,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 3,
+  "seconds": 6.5808390800000325,
+  "repaired": true,
+  "agents": [
+   "writer",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1028,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 6.402714971999899,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1031,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 4.918989290000013,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1036,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 3.6945415669999875,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1037,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": false,
+  "calls": 2,
+  "seconds": 7.931449485999906,
+  "repaired": true,
+  "agents": [
+   "writer",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1042,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 1,
+  "seconds": 2.7404921870000862,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1058,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 3.831793638000022,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1076,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 3.812097142000084,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1084,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 2.9329341100000192,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1094,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 2,
+  "seconds": 9.908534695999947,
+  "repaired": true,
+  "agents": [
+   "writer",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1114,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 3.702115150000054,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1115,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 5.7918737180000335,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1139,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 1,
+  "seconds": 2.880104815999971,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 880,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 5.750477354000054,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 896,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 2,
+  "seconds": 7.774791176000008,
+  "repaired": true,
+  "agents": [
+   "writer",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 944,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 6.035715208000056,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 954,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": false,
+  "calls": 2,
+  "seconds": 9.006630538999957,
+  "repaired": true,
+  "agents": [
+   "writer",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 955,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 4.019194298999992,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 962,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": false,
+  "calls": 2,
+  "seconds": 9.416745771000024,
+  "repaired": true,
+  "agents": [
+   "writer",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 988,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 3.6300043669999695,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 990,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 2.735675131999983,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 994,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 1,
+  "seconds": 4.249318697000035,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1001,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 1,
+  "seconds": 3.735681168000042,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1011,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 2,
+  "seconds": 6.601252648000013,
+  "repaired": true,
+  "agents": [
+   "writer",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 1014,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 3,
+  "seconds": 6.71747204899998,
+  "repaired": true,
+  "agents": [
+   "writer",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "direct",
+  "question_id": 724,
+  "db_id": "superhero",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 1,
+  "seconds": 2.7379289419999395,
+  "repaired": false,
+  "agents": [
+   "writer",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1476,
+  "db_id": "debit_card_specializing",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 21.541564280999978,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1481,
+  "db_id": "debit_card_specializing",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 119.14553740899999,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1482,
+  "db_id": "debit_card_specializing",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 37.973256684000035,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1526,
+  "db_id": "debit_card_specializing",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 22.27202152399991,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1339,
+  "db_id": "student_club",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 5,
+  "seconds": 12.701598705999913,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1359,
+  "db_id": "student_club",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 15.28219915700015,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1457,
+  "db_id": "student_club",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 8.335041021000052,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1460,
+  "db_id": "student_club",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 5,
+  "seconds": 10.245442929000092,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1464,
+  "db_id": "student_club",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 5,
+  "seconds": 9.055822411000008,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1168,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 15.240708830999893,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1169,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 5,
+  "seconds": 18.947950235999997,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1171,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 12.558485646999998,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1185,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 34.95585838400007,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1189,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 14.42414461300018,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1192,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 6,
+  "seconds": 15.910059866999973,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1231,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 5,
+  "seconds": 14.548455716000035,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1232,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 6,
+  "seconds": 17.437980657000026,
+  "repaired": true,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1239,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 5,
+  "seconds": 11.97609076699996,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1241,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 15.50311349399999,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1242,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 6,
+  "seconds": 22.396530089999942,
+  "repaired": true,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1243,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 20.86709363900013,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1247,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 13.112998082000104,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1257,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 5,
+  "seconds": 11.00794126400001,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1270,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 5,
+  "seconds": 10.747493701999929,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1302,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 7,
+  "seconds": 13.417203298999993,
+  "repaired": true,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1028,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 19.709349726000028,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1031,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 22.401168899999902,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1036,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 17.84790771100006,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1037,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": false,
+  "calls": 6,
+  "seconds": 17.506568259000005,
+  "repaired": true,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1042,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 5,
+  "seconds": 11.691275608000069,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1058,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 14.833845414000052,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1076,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 22.20970110799999,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1084,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 11.537639095000031,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1094,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 19.88382862499998,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1114,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 15.477498220999905,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1115,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 22.66748146100008,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1139,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 5,
+  "seconds": 12.428196641000113,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 880,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 5,
+  "seconds": 25.598142668000037,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 896,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 15.635957257999962,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 944,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 30.41551483100011,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 954,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 5,
+  "seconds": 16.870029842999884,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 955,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 18.306275845000073,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 962,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 19.262063168000168,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 988,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 15.74339338599998,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 990,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 13.342889724000088,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 994,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 23.751380962000212,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1001,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 5,
+  "seconds": 16.61968678700009,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1011,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 9.930984272999922,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 1014,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 5,
+  "seconds": 11.18250900299995,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "self_consistency",
+  "question_id": 724,
+  "db_id": "superhero",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 5,
+  "seconds": 10.998457202000054,
+  "repaired": false,
+  "agents": [
+   "self-consistency",
+   "sample",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1476,
+  "db_id": "debit_card_specializing",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 9,
+  "seconds": 36.736804452,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1481,
+  "db_id": "debit_card_specializing",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 11,
+  "seconds": 14400.246003544,
+  "repaired": true,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_values",
+   "try_sql",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1482,
+  "db_id": "debit_card_specializing",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 9,
+  "seconds": 45.60628739599997,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1526,
+  "db_id": "debit_card_specializing",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 10,
+  "seconds": 25.78728176199911,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_values",
+   "find_join_path",
+   "try_sql",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1339,
+  "db_id": "student_club",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 9,
+  "seconds": 31.41260346099989,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1359,
+  "db_id": "student_club",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 10,
+  "seconds": 25.676601471999675,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_values",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1457,
+  "db_id": "student_club",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 10,
+  "seconds": 27.418750101000114,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1460,
+  "db_id": "student_club",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 9,
+  "seconds": 22.479939209000804,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1464,
+  "db_id": "student_club",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 9,
+  "seconds": 24.05923955000071,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1168,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 0,
+  "seconds": 0.0,
+  "repaired": false,
+  "agents": [],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1169,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 9,
+  "seconds": 37.3475812050001,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1171,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 10,
+  "seconds": 28.48639395400096,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_join_path",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1185,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 10,
+  "seconds": 39.06549337800061,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_values",
+   "try_sql",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1189,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 10,
+  "seconds": 35.944449099999474,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1192,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 11,
+  "seconds": 28.499522468000578,
+  "repaired": true,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_values",
+   "try_sql",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1231,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 10,
+  "seconds": 24.42994545900001,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_join_path",
+   "try_sql",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1232,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": false,
+  "calls": 12,
+  "seconds": 28.76866258100017,
+  "repaired": true,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_values",
+   "try_sql",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1239,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 10,
+  "seconds": 28.625853593999636,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1241,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 10,
+  "seconds": 36.32030969800144,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1242,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 11,
+  "seconds": 33.70053148599982,
+  "repaired": true,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_values",
+   "try_sql",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1243,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 10,
+  "seconds": 28.168209404000663,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_join_path",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1247,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 10,
+  "seconds": 38.85364191100052,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1257,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 9,
+  "seconds": 25.68472268500045,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1270,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 10,
+  "seconds": 21.383026125999095,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_join_path",
+   "try_sql",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1302,
+  "db_id": "thrombosis_prediction",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 10,
+  "seconds": 21.461240209000607,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_join_path",
+   "try_sql",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1028,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 9,
+  "seconds": 48.590776186001676,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1031,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 10,
+  "seconds": 46.17187664799894,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1036,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 9,
+  "seconds": 37.27504812499865,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_values",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1037,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 12,
+  "seconds": 33.43544678099897,
+  "repaired": true,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "inspect_tables",
+   "try_sql",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1042,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 10,
+  "seconds": 31.1813677629998,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1058,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 10,
+  "seconds": 25.174605172000156,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_join_path",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1076,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 10,
+  "seconds": 29.291658774000098,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_values",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1084,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 10,
+  "seconds": 29.442221633000372,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_join_path",
+   "try_sql",
+   "find_values",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1094,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 12,
+  "seconds": 39.09495741399951,
+  "repaired": true,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_values",
+   "try_sql",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1114,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 9,
+  "seconds": 32.7865598139997,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1115,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 10,
+  "seconds": 33.66570780700022,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "find_values",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1139,
+  "db_id": "european_football_2",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 10,
+  "seconds": 31.25497005699981,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 880,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 9,
+  "seconds": 41.64928138600044,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_join_path",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 896,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 12,
+  "seconds": 27.60222675299883,
+  "repaired": true,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_join_path",
+   "try_sql",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 944,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 10,
+  "seconds": 36.050727850999465,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_values",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 954,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 12,
+  "seconds": 32.0196239909983,
+  "repaired": true,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_join_path",
+   "try_sql",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 955,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 10,
+  "seconds": 27.809030198999608,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_values",
+   "try_sql",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 962,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 10,
+  "seconds": 27.908940964000067,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_join_path",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 988,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 9,
+  "seconds": 33.36122718600018,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 990,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 9,
+  "seconds": 28.250951127998633,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_join_path",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 994,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 9,
+  "seconds": 25.02592428800017,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_join_path",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1001,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 9,
+  "seconds": 43.23191398699964,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1011,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 10,
+  "seconds": 22.05070638699908,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_join_path",
+   "try_sql",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 1014,
+  "db_id": "formula_1",
+  "difficulty": "challenging",
+  "correct": false,
+  "draft_correct": false,
+  "calls": 12,
+  "seconds": 26.652737176998926,
+  "repaired": true,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_join_path",
+   "try_sql",
+   "runner",
+   "fixer"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ },
+ {
+  "strategy": "deep_seeded",
+  "question_id": 724,
+  "db_id": "superhero",
+  "difficulty": "challenging",
+  "correct": true,
+  "draft_correct": true,
+  "calls": 9,
+  "seconds": 16.365549152000312,
+  "repaired": false,
+  "agents": [
+   "deep-agent",
+   "writer",
+   "planner",
+   "find_values",
+   "try_sql",
+   "submit",
+   "runner"
+  ],
+  "sql": "",
+  "draft_sql": "",
+  "reason": "recovered from notebook output"
+ }
+]

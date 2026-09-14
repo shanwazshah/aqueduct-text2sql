@@ -54,6 +54,8 @@ Identical accuracy. The agent took **16× longer**.
 The four possible outcomes were written into
 [`docs/EXPERIMENTS.md`](docs/EXPERIMENTS.md) **before** the run. This was outcome
 2: *"the gain was the budget, not the design. Report it that way."*
+Per-question results:
+[`data/bird/`](data/bird/results_phase9_lite_7b_challenging.json).
 
 One thing did improve with scale: at 3B the agent decided it was finished on 1
 question in 10; at 7B, on 27 of 50. **The scaffolding started working and it
