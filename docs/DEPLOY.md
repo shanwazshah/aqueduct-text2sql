@@ -44,6 +44,13 @@ AQ_MODEL_ANALYST = "llama-3.3-70b-versatile"
 
 5. **Deploy**
 
+> **The model id is the thing that breaks this.** Providers rename and retire
+> models, so a name copied from a blog post is often already dead. Take it from
+> the provider's own model list, not from here — the first deploy of this app
+> failed with `The model llama-3.3-70b-versatile does not exist or you do not
+> have access to it`. The app now says exactly that when it happens, and which
+> secret to change.
+
 First build takes a few minutes. The app seeds its own demo database on first
 run, so there is nothing to upload.
 

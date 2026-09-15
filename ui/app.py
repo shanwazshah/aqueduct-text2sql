@@ -124,21 +124,40 @@ def _looks_like_backend_down(error: Exception) -> bool:
     )
 
 
-def _looks_like_no_structured_output(error: Exception) -> bool:
+# Strategies that ask for schema-constrained output. `direct` is not one of
+# them — it needs only plain chat, which is why it runs against any provider.
+NEEDS_STRUCTURED_OUTPUT = frozenset(
+    {"chain", "parallel", "eval_optimize", "orchestrator", "deep", "deep_seeded"}
+)
+
+
+def _looks_like_no_structured_output(error: Exception, strategy: str) -> bool:
     """Did the provider reject a JSON-schema request?
 
-    `direct` needs only plain chat and runs anywhere. Every strategy that makes a
-    *decision* — the chain's verifier, the orchestrator's planner, the deep
-    agent's action — asks for schema-constrained output, which not every hosted
-    provider implements. On a deployed demo that is a configuration limit rather
-    than a bug, and it should read as one.
+    Narrow on purpose. The first version matched `invalid_request_error`, which
+    providers also return for a missing model — so a wrong model name was
+    reported as "this provider does not support structured output", naming
+    `direct`, which does not use it. A misleading diagnosis is worse than a raw
+    error: it sends the reader to fix the wrong thing.
+
+    Two conditions now, both required: the message must name the actual feature,
+    and the strategy must be one that uses it.
+    """
+    if strategy not in NEEDS_STRUCTURED_OUTPUT:
+        return False
+    text = str(error).lower()
+    return "response_format" in text or "json_schema" in text
+
+
+def _missing_model(error: Exception) -> bool:
+    """A model id the provider does not recognise.
+
+    The likeliest misconfiguration on a fresh deploy: provider model names
+    change, and a stale one in the secrets fails every question with a 404 that
+    says nothing about where to fix it.
     """
     text = str(error).lower()
-    return any(
-        phrase in text
-        for phrase in ("response_format", "json_schema", "not supported",
-                       "unsupported", "invalid_request_error")
-    )
+    return "model_not_found" in text or "does not exist or you do not have access" in text
 
 
 def is_local_backend() -> bool:
@@ -361,7 +380,17 @@ if question:
                     "Usually a rate limit on a free tier — wait a moment and try "
                     "again. Running it locally avoids this entirely; see the README."
                 )
-            elif _looks_like_no_structured_output(e) and not is_local_backend():
+            elif _missing_model(e):
+                st.error(f"The provider does not recognise `{settings.model_sql}`.")
+                st.markdown(
+                    "The model id in the configuration is wrong or unavailable on "
+                    "this account. Providers rename models, so a working id can "
+                    "stop working.\n\n"
+                    "**Fix:** check the provider's model list, then update "
+                    "`AQ_MODEL_SQL` (and the other `AQ_MODEL_*` values) in the "
+                    "app's secrets."
+                )
+            elif _looks_like_no_structured_output(e, strategy) and not is_local_backend():
                 st.warning(
                     f"**`{strategy}` needs JSON-schema output, which this hosted "
                     "provider does not support.**",
