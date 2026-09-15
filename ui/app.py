@@ -38,7 +38,11 @@ sys.path.insert(0, str(ROOT / "src"))
 try:
     for _key, _value in st.secrets.items():
         if _key.startswith("AQ_"):
-            os.environ.setdefault(_key, str(_value))
+            # Assign rather than setdefault: a secret is the deployment's
+            # explicit intent and should win over anything already in the
+            # environment. With setdefault, a stale value would silently
+            # survive a secrets change.
+            os.environ[_key] = str(_value)
 except Exception:
     pass  # no secrets.toml locally, which is the normal case
 
