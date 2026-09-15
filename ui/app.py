@@ -124,6 +124,23 @@ def _looks_like_backend_down(error: Exception) -> bool:
     )
 
 
+def _looks_like_no_structured_output(error: Exception) -> bool:
+    """Did the provider reject a JSON-schema request?
+
+    `direct` needs only plain chat and runs anywhere. Every strategy that makes a
+    *decision* — the chain's verifier, the orchestrator's planner, the deep
+    agent's action — asks for schema-constrained output, which not every hosted
+    provider implements. On a deployed demo that is a configuration limit rather
+    than a bug, and it should read as one.
+    """
+    text = str(error).lower()
+    return any(
+        phrase in text
+        for phrase in ("response_format", "json_schema", "not supported",
+                       "unsupported", "invalid_request_error")
+    )
+
+
 def is_local_backend() -> bool:
     """Is the model being served from this machine?
 
@@ -330,13 +347,29 @@ if question:
             # listening, which tells the reader nothing actionable. Ollama stops
             # on its own — an auto-update restarts the service — so this is the
             # most likely failure on this page and deserves the real answer.
-            if _looks_like_backend_down(e):
+            if _looks_like_backend_down(e) and is_local_backend():
                 st.error(f"Can't reach the model server at `{settings.base_url}`.")
                 st.markdown(
                     "**Ollama is not running.** Start it in a terminal:\n\n"
                     "```\nollama serve\n```\n\n"
                     "Then reload this page. Ollama stops itself after an "
                     "auto-update, so this happens occasionally."
+                )
+            elif _looks_like_backend_down(e):
+                st.error("The hosted model endpoint did not respond.")
+                st.caption(
+                    "Usually a rate limit on a free tier — wait a moment and try "
+                    "again. Running it locally avoids this entirely; see the README."
+                )
+            elif _looks_like_no_structured_output(e) and not is_local_backend():
+                st.warning(
+                    f"**`{strategy}` needs JSON-schema output, which this hosted "
+                    "provider does not support.**",
+                    icon="ℹ️",
+                )
+                st.caption(
+                    "`direct` works on any provider — and it is the strategy that "
+                    "wins the benchmark. The others need a local run with Ollama."
                 )
             else:
                 st.error(f"{type(e).__name__}: {e}")
