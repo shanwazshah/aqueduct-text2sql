@@ -1,0 +1,11 @@
+# Streamlit Community Cloud installs from this file.
+# The package itself is defined in pyproject.toml; this mirrors the runtime
+# dependencies plus streamlit, because Cloud does not run `pip install -e .`.
+sqlalchemy>=2.0
+sqlglot>=25.0
+pydantic>=2.0
+pydantic-settings>=2.0
+openai>=1.0
+typer>=0.12
+rich>=13.0
+streamlit>=1.30

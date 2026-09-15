@@ -162,6 +162,10 @@ python -m aqueduct.cli ask "Which department has the highest total salary spend?
 streamlit run ui/app.py
 ```
 
+To host it, see [`docs/DEPLOY.md`](docs/DEPLOY.md) — Streamlit Cloud has no GPU,
+so a deployed copy points at an OpenAI-compatible API instead of local Ollama.
+The backend is a `base_url`, so no code changes.
+
 **The experiments:**
 
 ```bash

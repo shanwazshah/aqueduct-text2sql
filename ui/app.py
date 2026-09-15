@@ -21,6 +21,7 @@ anything happening.
 
 from __future__ import annotations
 
+import os
 import sys
 import threading
 import time
@@ -28,7 +29,18 @@ from pathlib import Path
 
 import streamlit as st
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+# Secrets must reach the environment *before* aqueduct.config is imported, because
+# settings are read at import time. On Streamlit Cloud this is how the hosted
+# model endpoint arrives; locally there are no secrets and `.env` is used instead.
+try:
+    for _key, _value in st.secrets.items():
+        if _key.startswith("AQ_"):
+            os.environ.setdefault(_key, str(_value))
+except Exception:
+    pass  # no secrets.toml locally, which is the normal case
 
 from aqueduct.config import settings                      # noqa: E402
 from aqueduct.crew import Answer, Crew, RepairMode        # noqa: E402
@@ -70,7 +82,22 @@ STATUS_ICON = {
 
 @st.cache_resource(show_spinner=False)
 def get_schema():
-    """Introspect once per process — it costs a query per text column."""
+    """Introspect once per process — it costs a query per text column.
+
+    Seeds the demo database first if it is missing. The `.db` file is
+    gitignored, so a fresh clone — and every cloud deploy — starts without one.
+    """
+    from sqlalchemy import text as _text
+
+    from aqueduct.db.engine import get_engine
+    from aqueduct.db.seed import seed
+
+    try:
+        with get_engine().connect() as conn:
+            conn.execute(_text("SELECT 1 FROM employees LIMIT 1"))
+    except Exception:
+        seed()
+
     return load_schema()
 
 
@@ -84,9 +111,26 @@ def _looks_like_backend_down(error: Exception) -> bool:
     )
 
 
+def is_local_backend() -> bool:
+    """Is the model being served from this machine?
+
+    Decides both how to probe it and what advice to give when it is missing —
+    "run `ollama serve`" is useless when the endpoint is a hosted API.
+    """
+    return any(host in settings.base_url for host in ("localhost", "127.0.0.1", "0.0.0.0"))
+
+
 def backend_is_up() -> bool:
-    """Cheap liveness probe, so the page can warn before a question is asked."""
-    import urllib.error
+    """Cheap liveness probe, so the page can warn before a question is asked.
+
+    Only meaningful for a local Ollama, whose `/api/version` answers instantly
+    and without auth. A hosted endpoint has no such route and would need a real
+    authenticated request to check, which is not worth a page load — so it is
+    assumed up and a failure is reported when a question is actually asked.
+    """
+    if not is_local_backend():
+        return True
+
     import urllib.request
 
     root = settings.base_url.rsplit("/v1", 1)[0]
@@ -226,6 +270,13 @@ if not backend_is_up():
         "Start it with `ollama serve`, then reload — questions will fail until "
         "you do.",
         icon="🔌",
+    )
+elif not is_local_backend():
+    st.info(
+        f"Running against a hosted model (`{settings.model_sql}`). Answers are "
+        "generated live, so expect a few seconds and the occasional wrong "
+        "query — measured accuracy is in the README.",
+        icon="☁️",
     )
 
 question = st.text_input(
