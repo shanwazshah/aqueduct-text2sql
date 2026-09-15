@@ -70,7 +70,20 @@ BENCHMARK = {
     "parallel":      {"bird_ex": None, "demo_calls": 3.7, "note": "critics vote"},
     "eval_optimize": {"bird_ex": None, "demo_calls": 5.3, "note": "grade and revise"},
     "react":         {"bird_ex": None, "demo_calls": 2.5, "note": "tool-using agent"},
+    # Phase 9. These were measured on the 50-question *challenging* stratum, not
+    # the 100-question stratified sample the `bird_ex` column reports, so their
+    # scores are deliberately absent rather than listed beside numbers from a
+    # different measurement. `deep_seeded` and `self_consistency` both reached
+    # 28.0% there; see the README.
+    "self_consistency": {"bird_ex": None, "demo_calls": 5.0, "note": "5 samples, voted"},
+    "deep_seeded":      {"bird_ex": None, "demo_calls": 10.0, "note": "deep agent, seeded"},
+    "deep":             {"bird_ex": None, "demo_calls": 9.0, "note": "deep agent, from scratch"},
 }
+
+# A strategy with no entry must not take the page down. The picker reads
+# `STRATEGIES`, so adding one to the registry and forgetting it here crashed the
+# app on load - which is how a live demo fails in front of someone.
+UNKNOWN = {"bird_ex": None, "demo_calls": None, "note": "not yet benchmarked"}
 
 STATUS_ICON = {
     Status.RUNNING: "⏳",
@@ -225,15 +238,18 @@ with st.sidebar:
     strategy = st.selectbox(
         "Strategy",
         list(STRATEGIES),
-        format_func=lambda n: f"{n} — {BENCHMARK[n]['note']}",
+        format_func=lambda n: f"{n} — {BENCHMARK.get(n, UNKNOWN)['note']}",
     )
 
-    info = BENCHMARK[strategy]
+    info = BENCHMARK.get(strategy, UNKNOWN)
     left, right = st.columns(2)
     left.metric("BIRD gen EX", f"{info['bird_ex']:.0f}%" if info["bird_ex"] else "—")
-    right.metric("calls/q (demo set)", f"{info['demo_calls']:.1f}")
+    right.metric(
+        "calls/q (demo set)",
+        f"{info['demo_calls']:.1f}" if info["demo_calls"] else "—",
+    )
     if info["bird_ex"] is None:
-        st.caption("Not run on BIRD - no score to show.")
+        st.caption("No score from the 100-question BIRD sweep - see the README.")
 
     repair = st.select_slider(
         "Repair",
