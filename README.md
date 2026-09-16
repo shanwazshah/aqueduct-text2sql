@@ -244,6 +244,9 @@ worth asking a model about, because the remaining question is no longer "does it
 run" but "is it right". Execution feedback was worth up to +10 points; model
 critique, +0.0.
 
+The full version — every box, both branches of the repair fork, and which module
+each one lives in — is in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
 ---
 
 ## Layout
