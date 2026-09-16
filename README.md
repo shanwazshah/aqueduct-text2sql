@@ -179,6 +179,73 @@ x2**, **Internet On**, **Persistence: Files only**, Run All.
 
 ---
 
+## Architecture
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  1. ENTRY          Streamlit UI · CLI                    │
+└───────────────────────────┬──────────────────────────────┘
+                            │ natural-language question
+                            ▼
+┌──────────────────────────────────────────────────────────┐
+│  2. CREW ORCHESTRATOR                                    │
+│     generate → execute → review → repair                 │
+└──────────┬────────────────────────────────┬──────────────┘
+           ▼                                ▼
+┌────────────────────────┐      ┌──────────────────────────┐
+│ 3. SCHEMA CARD         │      │ 4. ERROR MEMORY          │
+│ tables, columns, FKs,  │      │ verified past repairs,   │
+│ sample values          │      │ scoped per database      │
+└──────────┬─────────────┘      └────────────┬─────────────┘
+           └───────────────┬─────────────────┘
+                           ▼
+┌──────────────────────────────────────────────────────────┐
+│  5. GENERATION STRATEGY  (9)                             │
+│  direct · react · chain · parallel · eval_optimize       │
+│  orchestrator · deep · deep_seeded · self_consistency    │
+└───────────────────────────┬──────────────────────────────┘
+                            ▼
+┌──────────────────────────────────────────────────────────┐
+│  6. LLM CLIENT     OpenAI-compatible · structured output │
+│                    · disk cache  (Ollama / vLLM / API)   │
+└───────────────────────────┬──────────────────────────────┘
+                            │ SQL draft
+                            ▼
+┌──────────────────────────────────────────────────────────┐
+│  7. SAFETY GUARD   parse AST · reject writes ·           │
+│                    one statement only · inject LIMIT     │
+└───────────────────────────┬──────────────────────────────┘
+                            ▼
+┌──────────────────────────────────────────────────────────┐
+│  8. DATABASE EXECUTION                                   │
+└──────────┬────────────────────────────────┬──────────────┘
+           │ fails                          │ succeeds
+           ▼                                ▼
+┌────────────────────────┐      ┌──────────────────────────┐
+│ 9. FIXER               │      │ 10. ROUTER → CRITIC      │
+│ DB error + schema hint │◄─────│ how much checking does   │
+│ (the +10 point signal) │ issue│ this query deserve?      │
+└──────────┬─────────────┘      └────────────┬─────────────┘
+           │ corrected SQL                   │ clean
+           └──────► back to Safety Guard     ▼
+                                  ┌──────────────────────────┐
+                                  │ 11. ANSWER               │
+                                  │ SQL · rows · explanation │
+                                  └──────────────────────────┘
+
+  12. OBSERVABILITY  span tree · agents · timings · call counts
+  13. EVALUATION     BIRD loader · execution-accuracy grader · sweeps
+```
+
+**The fork at step 8 is the project's finding, drawn.** A query that *fails* goes
+straight to the Fixer carrying the database's error — ground truth, free, and
+available before any model is consulted. A query that *succeeds* is the only one
+worth asking a model about, because the remaining question is no longer "does it
+run" but "is it right". Execution feedback was worth up to +10 points; model
+critique, +0.0.
+
+---
+
 ## Layout
 
 ```
